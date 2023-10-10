@@ -1,3 +1,5 @@
+import type { getAllRecipesByName as GetAllRecipesByName, resizeRecipe as ResizeRecipe, Recipe } from "./recipe";
+
 export type List = ListItem[];
 export type ListItem = {
   name: string;
@@ -11,8 +13,12 @@ export type GeneratedListItem = {
   checked: boolean;
 };
 
+declare const getAllRecipesByName: typeof GetAllRecipesByName;
+declare const resizeRecipe: typeof ResizeRecipe;
+
 export function calculateAndUpdateGeneratedList(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
-  return updateGeneratedList(spreadsheet, calculateGeneratedList(readList(spreadsheet)));
+  const recipesByName = getAllRecipesByName(spreadsheet);
+  return updateGeneratedList(spreadsheet, calculateGeneratedList(recipesByName, readList(spreadsheet)));
 }
 
 export function readList(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet): List {
@@ -20,14 +26,18 @@ export function readList(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet):
   return range.getValues().flatMap(([name, quantity]) => name ? [{ name, quantity }] : []);
 }
 
-export function calculateGeneratedList(list: List): GeneratedList {
-  return list.reduce((acc, item) => ({
-    ...acc,
-    [item.name]: {
-      quantity: acc[item.name] ? `${acc[item.name].quantity}|${item.quantity}` : item.quantity,
-      checked: false,
-    },
-  }), {});
+export function calculateGeneratedList(recipesByName: Record<string, Recipe>, list: List): GeneratedList {
+  return list
+    .flatMap(item => recipesByName[item.name]
+      ? resizeRecipe(recipesByName[item.name], item.quantity as `${number}p`).ingredients
+      : [item])
+    .reduce((acc, item) => ({
+      ...acc,
+      [item.name]: {
+        quantity: acc[item.name] ? `${acc[item.name].quantity}|${item.quantity}` : item.quantity,
+        checked: false,
+      },
+    }), {});
 }
 
 export function updateGeneratedList(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet, list: GeneratedList) {

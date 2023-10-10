@@ -6,7 +6,7 @@ export type Recipe = {
 
 export type Ingredient = {
   name: string;
-  quantity?: Quantity;
+  quantity: Quantity;
 };
 
 export type Quantity = number | `${number} ${string}` | `${number}${string}` | "";
@@ -23,6 +23,14 @@ export function sortRecipes(range: GoogleAppsScript.Spreadsheet.Range) {
   recipes.sort((a, b) => a.name > b.name ? 1 : -1);
 
   writeRecipes(range, recipes);
+}
+
+export function getAllRecipesByName(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet): Record<string, Recipe> {
+  const range = spreadsheet.getRange(`${RECIPE_SHEET_NAME}!${RECIPE_SHEET_RANGE}`);
+  return readRecipes(range).reduce((acc, recipe) => ({
+    ...acc,
+    [recipe.name]: recipe,
+  }), {});
 }
 
 function readRecipes(range: GoogleAppsScript.Spreadsheet.Range): Recipe[] {
@@ -77,10 +85,6 @@ export function resizeRecipe(recipe: Recipe, people: `${number}p`): Recipe {
 }
 
 function resizeIngredient(ingredient: Ingredient, ratio: number): Ingredient {
-  if (typeof ingredient.quantity === "undefined") {
-    return ingredient;
-  }
-
   if (typeof ingredient.quantity === "number") {
     return {
       ...ingredient,
