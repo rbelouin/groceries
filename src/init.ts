@@ -2,9 +2,11 @@ const LIST_SHEET_NAME = "Liste";
 const LIST_SHEET_TITLE = "Liste de courses";
 const LIST_SHEET_ARTICLE_NAME = "Nom";
 const LIST_SHEET_ARTICLE_QUANTITY = "Quantité";
+const LIST_SHEET_ARTICLE_RANGE = "A3:B";
 
 const GENERATED_LIST_SHEET_NAME = "Liste générée";
 const GENERATED_LIST_SHEET_TITLE = "Liste générée";
+const GENERATED_LIST_SHEET_ARTICLE_RANGE = "A3:C";
 
 function init() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
