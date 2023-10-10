@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`list updateGeneratedList should match snapshot 1`] = `
+[
+  [
+    false,
+    "Pain",
+    "500g",
+  ],
+  [
+    true,
+    "Baguette",
+    "250g",
+  ],
+  [
+    false,
+    "Saucisson",
+    "100g",
+  ],
+  [
+    false,
+    "Yaourt",
+    "1l",
+  ],
+  [
+    false,
+    "Œufs",
+    "12",
+  ],
+  [
+    "",
+    "",
+    "",
+  ],
+]
+`;
