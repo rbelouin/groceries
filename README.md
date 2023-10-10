@@ -20,4 +20,28 @@ Created new Google Sheets Add-on script: https://script.google.com/d/…
 …
 ```
 
-Keep track of the two generated URLs above, they’ll be useful for future use.
+Keep track of the two generated URLs above, they’ll be useful for future use. Then add the necessary `oauthScopes` to the generated `appsscript.json`:
+
+```json
+{
+  "timeZone": "America/New_York",
+  "dependencies": {
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/spreadsheets"
+  ]
+}
+```
+
+Push the sources to Apps Script:
+
+```bash
+yarn clasp push # Yes, you want to push and overwrite
+```
+
+Then open the _Google Sheets Add-on script_ that was generated earlier. Run the `init` function; give it permissions to _
+See, edit, create, and delete all your Google Sheets spreadsheets_. Assess that a _List_ sheet has been added to the _Google Sheet_ that was also generated earlier.
+
+Congrats! You can now start building your grocery list.

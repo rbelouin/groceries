@@ -6,6 +6,8 @@
   "author": "Rodolphe Belouin <rodolphe.belouin@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "@google/clasp": "^2.4.2"
+    "@google/clasp": "^2.4.2",
+    "@types/google-apps-script": "^1.0.74",
+    "typescript": "^5.2.2"
   }
 }
