@@ -8,11 +8,19 @@ const GENERATED_LIST_SHEET_NAME = "Liste générée";
 const GENERATED_LIST_SHEET_TITLE = "Liste générée";
 const GENERATED_LIST_SHEET_ARTICLE_RANGE = "A3:C";
 
+const RECIPE_SHEET_NAME = "Recettes";
+const RECIPE_SHEET_TITLE = "Recettes";
+const RECIPE_SHEET_RANGE = "A3:C";
+const RECIPE_SHEET_RECIPE = "Recette";
+const RECIPE_SHEET_INGREDIENT = "Ingrédient";
+const RECIPE_SHEET_QUANTITY = "Quantité";
+
 function init() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   createListSheet(spreadsheet);
   createGeneratedListSheet(spreadsheet);
   createTrigger(spreadsheet);
+  createRecipeSheet(spreadsheet);
 }
 
 function createListSheet(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
@@ -56,6 +64,25 @@ function createTrigger(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
     .forSpreadsheet(spreadsheet)
     .onChange()
     .create();
+}
+
+function createRecipeSheet(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
+  if (spreadsheet.getSheetByName(RECIPE_SHEET_NAME)) return;
+
+  const sheet = spreadsheet.insertSheet(RECIPE_SHEET_NAME, 2);
+  createHeader(sheet, RECIPE_SHEET_TITLE);
+
+  sheet.getRange("A2")
+    .setValue(RECIPE_SHEET_RECIPE)
+    .setFontStyle("italic");
+
+  sheet.getRange("B2")
+    .setValue(RECIPE_SHEET_INGREDIENT)
+    .setFontStyle("italic");
+
+  sheet.getRange("C2")
+    .setValue(RECIPE_SHEET_QUANTITY)
+    .setFontStyle("italic");
 }
 
 function createHeader(sheet: GoogleAppsScript.Spreadsheet.Sheet, title: string) {
