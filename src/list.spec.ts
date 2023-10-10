@@ -1,4 +1,5 @@
 import { readList, calculateGeneratedList, updateGeneratedList, GeneratedList } from "./list";
+import { resizeRecipe, type Recipe } from "./recipe";
 
 describe("list", () => {
   beforeEach(() => {
@@ -40,29 +41,55 @@ describe("list", () => {
   });
 
   describe("calculateGeneratedList", () => {
+    const recipesByName = {
+      "Tartines": {
+        name: "Tartines",
+        people: "4p",
+        ingredients: [{
+          name: "Pain",
+          quantity: "100g",
+        }, {
+          name: "Confiture",
+          quantity: "60ml",
+        }],
+      },
+    } as Record<string, Recipe>;
+
     const list = [
       { name: "Pain", quantity: "300g" },
+      { name: "Tartines", quantity: "2p" },
       { name: "Eau", quantity: "" },
       { name: "Brioche", quantity: "1kg" },
       { name: "Pain", quantity: "600g" },
     ];
 
-    const generatedList = calculateGeneratedList(list);
-
-    it("should deduplicate articles", () => {
-      expect(Object.keys(generatedList)).toStrictEqual(["Pain", "Eau", "Brioche"]);
+    beforeEach(() => {
+      (global as any).resizeRecipe = resizeRecipe;
     });
 
-    it("should combine quantity fields of redundant items", () => {
-      expect(generatedList["Pain"].quantity).toBe("300g|600g");
+    afterEach(() => {
+      delete (global as any).resizeRecipe;
     });
 
-    it("should leave the other quantity fields unmodified", () => {
+    it("should expand recipes and deduplicate articles", () => {
+      const generatedList = calculateGeneratedList(recipesByName, list);
+      expect(Object.keys(generatedList)).toStrictEqual(["Pain", "Confiture", "Eau", "Brioche"]);
+    });
+
+    it("should scale and combine quantity fields of redundant items", () => {
+      const generatedList = calculateGeneratedList(recipesByName, list);
+      expect(generatedList["Pain"].quantity).toBe("300g|50g|600g");
+    });
+
+    it("should leave the other quantity fields uncombined", () => {
+      const generatedList = calculateGeneratedList(recipesByName, list);
       expect(generatedList["Eau"].quantity).toBe("");
       expect(generatedList["Brioche"].quantity).toBe("1kg");
+      expect(generatedList["Confiture"].quantity).toBe("30ml");
     });
 
     it("should mark articles as unchecked", () => {
+      const generatedList = calculateGeneratedList(recipesByName, list);
       expect(Object.values(generatedList).map(item => item.checked)).not.toEqual(expect.arrayContaining([true]));
     });
   });
