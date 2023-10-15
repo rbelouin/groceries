@@ -96,7 +96,7 @@ function resizeIngredient(ingredient: Ingredient, ratio: number): Ingredient {
     return {
       ...ingredient,
       quantity: ingredient.quantity.replace(/^([0-9,.]+)/, (_, num) => {
-        return (Math.round(parseInt(num, 10) * ratio * 100) / 100).toString();
+        return (Math.round(parseFloat(num) * ratio * 100) / 100).toString();
       }) as Quantity,
     };
   }
