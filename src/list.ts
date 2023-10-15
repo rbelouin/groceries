@@ -1,4 +1,5 @@
 import type { getAllRecipesByName as GetAllRecipesByName, resizeRecipe as ResizeRecipe, Recipe } from "./recipe";
+import type { reduceQuantities as ReduceQuantities } from "./quantity";
 
 export type List = ListItem[];
 export type ListItem = {
@@ -15,6 +16,7 @@ export type GeneratedListItem = {
 
 declare const getAllRecipesByName: typeof GetAllRecipesByName;
 declare const resizeRecipe: typeof ResizeRecipe;
+declare const reduceQuantities: typeof ReduceQuantities;
 
 export function calculateAndUpdateGeneratedList(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
   const recipesByName = getAllRecipesByName(spreadsheet);
@@ -34,7 +36,7 @@ export function calculateGeneratedList(recipesByName: Record<string, Recipe>, li
     .reduce((acc, item) => ({
       ...acc,
       [item.name]: {
-        quantity: acc[item.name] ? `${acc[item.name].quantity}|${item.quantity}` : item.quantity,
+        quantity: reduceQuantities(acc[item.name]?.quantity || "", item.quantity),
         checked: false,
       },
     }), {});
