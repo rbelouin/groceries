@@ -15,6 +15,12 @@ const RECIPE_SHEET_RECIPE = "Recette";
 const RECIPE_SHEET_INGREDIENT = "Ingrédient";
 const RECIPE_SHEET_QUANTITY = "Quantité";
 
+const STORE_SHEET_NAME = "Magasins";
+const STORE_SHEET_TITLE = "Magasins";
+const STORE_SHEET_ARTICLE_NAME = "Article";
+const STORE_SHEET_ARTICLE_DEPARTMENT = "Rayon";
+const STORE_SHEET_ARTICLE_PRICE = "Price";
+
 function init() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   createListSheet(spreadsheet);
@@ -23,6 +29,7 @@ function init() {
   createRecipeSheet(spreadsheet);
 
   migrate0000(spreadsheet);
+  migrate0001(spreadsheet);
 }
 
 function createListSheet(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
@@ -129,5 +136,52 @@ function migrate0000(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
     version.setFontColor("#388a66");
     version.setFontStyle("italic");
     version.setValue(1);
+  }
+}
+
+function migrate0001(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
+  const listSheet = spreadsheet.getSheetByName(LIST_SHEET_NAME);
+  if (!listSheet) return;
+
+  const version = listSheet.getRange("D1");
+
+  if (version.getValue() === 1) {
+    const sheet = spreadsheet.insertSheet(STORE_SHEET_NAME, 3);
+    sheet.getRange("A1")
+      .setValue(STORE_SHEET_TITLE)
+      .setFontFamily("PT Sans")
+      .setFontSize(26)
+      .setHorizontalAlignment("center");
+
+    sheet.deleteColumn(26);
+
+    for (let column = 2; column <= 24; column += 2) {
+      sheet.getRange(1, column, 1, 2)
+        .merge()
+        .setFontSize(20)
+        .setHorizontalAlignment("center")
+        .setVerticalAlignment("middle");
+    }
+
+    const headers = sheet.getRange("A2:2")
+      .setFontStyle("italic");
+
+    headers.setValues([new Array(headers.getNumColumns()).fill("").map((_, index) => {
+      if (index === 0) return STORE_SHEET_ARTICLE_NAME;
+      return index % 2 === 1
+        ? STORE_SHEET_ARTICLE_DEPARTMENT
+        : STORE_SHEET_ARTICLE_PRICE;
+    })]);
+
+    sheet.setColumnWidth(1, 250);
+
+    sheet.getRange("A1:2")
+      .setBackground("#0f6b4f")
+      .setFontColor("#ffffff");
+
+    const range = sheet.getRange("A3:Y");
+    sheet.setRowHeights(range.getRow(), range.getNumRows(), 36);
+
+    version.setValue(2);
   }
 }
