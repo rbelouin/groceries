@@ -21,6 +21,8 @@ function init() {
   createGeneratedListSheet(spreadsheet);
   createTrigger(spreadsheet);
   createRecipeSheet(spreadsheet);
+
+  migrate0000(spreadsheet);
 }
 
 function createListSheet(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
@@ -96,4 +98,36 @@ function createHeader(sheet: GoogleAppsScript.Spreadsheet.Sheet, title: string) 
   sheet.getRange("A1:2")
     .setBackground("#0f6b4f")
     .setFontColor("#ffffff");
+}
+
+function migrate0000(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
+  const listSheet = spreadsheet.getSheetByName(LIST_SHEET_NAME);
+  if (!listSheet) return;
+
+  const version = listSheet.getRange("D1");
+
+  if (version.getValue() === "") {
+    listSheet.setColumnWidth(1, 250);
+    listSheet.setColumnWidth(2, 80);
+    listSheet.setColumnWidth(3, 20);
+
+    const articles = listSheet.getRange(LIST_SHEET_ARTICLE_RANGE);
+    articles.setVerticalAlignment("middle");
+    listSheet.setRowHeights(articles.getRow(), articles.getNumRows(), 36);
+
+    const generatedListSheet = spreadsheet.getSheetByName(GENERATED_LIST_SHEET_NAME);
+    if (generatedListSheet) {
+      generatedListSheet.setColumnWidth(1, 50);
+      generatedListSheet.setColumnWidth(2, 220);
+      generatedListSheet.setColumnWidth(3, 80);
+
+      const generatedArticles = generatedListSheet.getRange(GENERATED_LIST_SHEET_ARTICLE_RANGE);
+      articles.setVerticalAlignment("middle");
+      generatedListSheet.setRowHeights(generatedArticles.getRow(), generatedArticles.getNumRows(), 36);
+    }
+
+    version.setFontColor("#388a66");
+    version.setFontStyle("italic");
+    version.setValue(1);
+  }
 }
