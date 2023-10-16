@@ -1,5 +1,6 @@
 import { readList, calculateGeneratedList, updateGeneratedList, GeneratedList } from "./list";
 import { resizeRecipe, type Recipe } from "./recipe";
+import { reduceQuantities } from "./quantity";
 
 describe("list", () => {
   beforeEach(() => {
@@ -65,10 +66,12 @@ describe("list", () => {
 
     beforeEach(() => {
       (global as any).resizeRecipe = resizeRecipe;
+      (global as any).reduceQuantities = reduceQuantities;
     });
 
     afterEach(() => {
       delete (global as any).resizeRecipe;
+      delete (global as any).reduceQuantities;
     });
 
     it("should expand recipes and deduplicate articles", () => {
@@ -78,14 +81,14 @@ describe("list", () => {
 
     it("should scale and combine quantity fields of redundant items", () => {
       const generatedList = calculateGeneratedList(recipesByName, list);
-      expect(generatedList["Pain"].quantity).toBe("300g|50g|600g");
+      expect(generatedList["Pain"].quantity).toBe("950g");
     });
 
     it("should leave the other quantity fields uncombined", () => {
       const generatedList = calculateGeneratedList(recipesByName, list);
       expect(generatedList["Eau"].quantity).toBe("");
       expect(generatedList["Brioche"].quantity).toBe("1kg");
-      expect(generatedList["Confiture"].quantity).toBe("30ml");
+      expect(generatedList["Confiture"].quantity).toBe("3cl");
     });
 
     it("should mark articles as unchecked", () => {

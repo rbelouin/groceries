@@ -55,7 +55,7 @@ describe("recipe", () => {
       });
     });
 
-    it("should round string quantity values with a precision of two digits after the comma", () => {
+    it("should round string quantity values with a precision of two digits after the decimal point", () => {
       expect(resizeRecipe(RECIPE, "2p")).toStrictEqual({
         name: "Recipe 1",
         people: "2p",
@@ -68,6 +68,27 @@ describe("recipe", () => {
         }, {
           name: "Onions",
           quantity: 1 / 3,
+        }],
+      });
+    });
+
+    it("should handle decimal values as an input too", () => {
+      const recipe = { ...RECIPE, ingredients: RECIPE.ingredients.concat([{ name: "Milk", quantity: "0.5 dl" }]) };
+      expect(resizeRecipe(recipe, "6p")).toStrictEqual({
+        name: "Recipe 1",
+        people: "6p",
+        ingredients: [{
+          name: "Cheese",
+          quantity: "300g",
+        }, {
+          name: "Crème Fraîche",
+          quantity: "2 c-à-s",
+        }, {
+          name: "Onions",
+          quantity: 1,
+        }, {
+          name: "Milk",
+          quantity: "0.5 dl",
         }],
       });
     });
