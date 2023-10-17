@@ -11,6 +11,9 @@ export type Ingredient = {
 
 export type Quantity = number | `${number} ${string}` | `${number}${string}` | "";
 
+declare const RECIPE_SHEET_NAME: string;
+declare const RECIPE_SHEET_RANGE: string;
+
 export function sortAndFormatRecipes() {
   const range = getRange();
   sortRecipes(range);

@@ -17,6 +17,10 @@ export type GeneratedListItem = {
 declare const getAllRecipesByName: typeof GetAllRecipesByName;
 declare const resizeRecipe: typeof ResizeRecipe;
 declare const reduceQuantities: typeof ReduceQuantities;
+declare const LIST_SHEET_NAME: string;
+declare const LIST_SHEET_ARTICLE_RANGE: string;
+declare const GENERATED_LIST_SHEET_NAME: string;
+declare const GENERATED_LIST_SHEET_ARTICLE_RANGE: string;
 
 export function calculateAndUpdateGeneratedList(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
   const recipesByName = getAllRecipesByName(spreadsheet);

@@ -1,8 +1,10 @@
+import type { getStoreNames as GetStoreNames } from "./stores";
+
 const LIST_SHEET_NAME = "Liste";
 const LIST_SHEET_TITLE = "Liste de courses";
 const LIST_SHEET_ARTICLE_NAME = "Nom";
 const LIST_SHEET_ARTICLE_QUANTITY = "Quantité";
-const LIST_SHEET_ARTICLE_RANGE = "A3:B";
+const LIST_SHEET_ARTICLE_RANGE = "A4:B";
 
 const GENERATED_LIST_SHEET_NAME = "Liste générée";
 const GENERATED_LIST_SHEET_TITLE = "Liste générée";
@@ -21,6 +23,8 @@ const STORE_SHEET_ARTICLE_NAME = "Article";
 const STORE_SHEET_ARTICLE_DEPARTMENT = "Rayon";
 const STORE_SHEET_ARTICLE_PRICE = "Price";
 
+declare const getStoreNames: typeof GetStoreNames;
+
 function init() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   createListSheet(spreadsheet);
@@ -30,6 +34,7 @@ function init() {
 
   migrate0000(spreadsheet);
   migrate0001(spreadsheet);
+  migrate0002(spreadsheet);
 }
 
 function createListSheet(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
@@ -118,7 +123,7 @@ function migrate0000(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
     listSheet.setColumnWidth(2, 80);
     listSheet.setColumnWidth(3, 20);
 
-    const articles = listSheet.getRange(LIST_SHEET_ARTICLE_RANGE);
+    const articles = listSheet.getRange("A3:B");
     articles.setVerticalAlignment("middle");
     listSheet.setRowHeights(articles.getRow(), articles.getNumRows(), 36);
 
@@ -183,5 +188,27 @@ function migrate0001(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
     sheet.setRowHeights(range.getRow(), range.getNumRows(), 36);
 
     version.setValue(2);
+  }
+}
+
+function migrate0002(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
+  const listSheet = spreadsheet.getSheetByName(LIST_SHEET_NAME);
+  if (!listSheet) return;
+
+  const version = listSheet.getRange("D1");
+
+  if (version.getValue() === 2) {
+    listSheet.insertRowAfter(1);
+
+    listSheet.getRange("A2:C2")
+      .merge()
+      .setValue("Aucun Magasin")
+      .setFontSize(16)
+      .setHorizontalAlignment("right")
+      .setDataValidation(SpreadsheetApp.newDataValidation()
+                        .requireValueInList(["Aucun Magasin"].concat(getStoreNames(spreadsheet)))
+                        .build());
+                         
+    version.setValue(3);
   }
 }
