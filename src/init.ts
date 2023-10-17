@@ -5,6 +5,8 @@ const LIST_SHEET_TITLE = "Liste de courses";
 const LIST_SHEET_ARTICLE_NAME = "Nom";
 const LIST_SHEET_ARTICLE_QUANTITY = "Quantité";
 const LIST_SHEET_ARTICLE_RANGE = "A4:B";
+const LIST_SHEET_STORE_NAME = "A2:C2";
+const LIST_SHEET_NO_STORE = "Aucun Magasin";
 
 const GENERATED_LIST_SHEET_NAME = "Liste générée";
 const GENERATED_LIST_SHEET_TITLE = "Liste générée";
@@ -200,13 +202,13 @@ function migrate0002(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
   if (version.getValue() === 2) {
     listSheet.insertRowAfter(1);
 
-    listSheet.getRange("A2:C2")
+    listSheet.getRange(LIST_SHEET_STORE_NAME)
       .merge()
-      .setValue("Aucun Magasin")
+      .setValue(LIST_SHEET_NO_STORE)
       .setFontSize(16)
       .setHorizontalAlignment("right")
       .setDataValidation(SpreadsheetApp.newDataValidation()
-                        .requireValueInList(["Aucun Magasin"].concat(getStoreNames(spreadsheet)))
+                        .requireValueInList([LIST_SHEET_NO_STORE].concat(getStoreNames(spreadsheet)))
                         .build());
                          
     version.setValue(3);
