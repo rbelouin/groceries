@@ -144,7 +144,7 @@ describe("list", () => {
     });
 
     it("should keep articles that haven’t changed with the same `checked` status", () => {
-      updateGeneratedList(spreadsheet as any, list);
+      updateGeneratedList(spreadsheet as any, {}, list);
 
       expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.arrayContaining([
         [false, "Pain", "500g"],
@@ -153,20 +153,20 @@ describe("list", () => {
     });
 
     it("should remove articles that are no longer listed", () => {
-      updateGeneratedList(spreadsheet as any, list);
+      updateGeneratedList(spreadsheet as any, {}, list);
 
       expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.not.arrayContaining([[false, "Beurre", "500g"]]));
       expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.not.arrayContaining([[true, "Crème Fraîche", "5cl"]]));
     });
 
     it("should add articles that were not listed before", () => {
-      updateGeneratedList(spreadsheet as any, list);
+      updateGeneratedList(spreadsheet as any, {}, list);
 
       expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.arrayContaining([[false, "Saucisson", "100g"]]));
     });
 
     it("should 'uncheck' articles that have changed quantities", () => {
-      updateGeneratedList(spreadsheet as any, list);
+      updateGeneratedList(spreadsheet as any, {}, list);
 
       expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.arrayContaining([
         [false, "Yaourt", "1l"],
@@ -174,8 +174,25 @@ describe("list", () => {
       ]));
     });
 
+    it("should sort articles by department, and then by name", () => {
+      updateGeneratedList(spreadsheet as any, {
+        "Pain": { name: "Pain", department: "02. Pains", price: "" },
+        "Baguette": { name: "Baguette", department: "02. Pains", price: "" },
+        "Yaourt": { name: "Yaourt", department: "01. Produits Laitiers", price: "" },
+      }, list);
+
+      expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues().map(row => row[1])).toStrictEqual([
+        "Saucisson",
+        "Œufs",
+        "Yaourt",
+        "Baguette",
+        "Pain",
+        ""
+      ]);
+    });
+
     it("should match snapshot", () => {
-      updateGeneratedList(spreadsheet as any, list);
+      updateGeneratedList(spreadsheet as any, {}, list);
 
       expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toMatchSnapshot();
     });

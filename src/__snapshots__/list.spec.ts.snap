@@ -3,14 +3,14 @@
 exports[`list updateGeneratedList should match snapshot 1`] = `
 [
   [
-    false,
-    "Pain",
-    "500g",
-  ],
-  [
     true,
     "Baguette",
     "250g",
+  ],
+  [
+    false,
+    "Pain",
+    "500g",
   ],
   [
     false,

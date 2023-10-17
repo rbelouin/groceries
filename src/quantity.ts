@@ -24,7 +24,7 @@ type Weight = {
   unit: WeightUnit;
 };
 
-type ParsedQuantity = Countable | Volume | Weight;
+export type ParsedQuantity = Countable | Volume | Weight;
 type ParsedQuantities = Record<ParsedQuantity["type"], number> & {
   unknown?: string[];
 };
@@ -134,7 +134,7 @@ export function serializeMilligrams(count: number): string {
   return `${Math.ceil(100 * count) / 100}mg`;
 }
 
-function parseQuantity(value: Quantity): string | ParsedQuantity {
+export function parseQuantity(value: Quantity): string | ParsedQuantity {
   if (typeof value === "number") {
     return { type: "countable", count: value, unit: undefined };
   }
