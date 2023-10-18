@@ -10,7 +10,7 @@ const LIST_SHEET_NO_STORE = "Aucun Magasin";
 
 const GENERATED_LIST_SHEET_NAME = "Liste générée";
 const GENERATED_LIST_SHEET_TITLE = "Liste générée";
-const GENERATED_LIST_SHEET_ARTICLE_RANGE = "A3:C";
+const GENERATED_LIST_SHEET_ARTICLE_RANGE = "A3:D";
 
 const RECIPE_SHEET_NAME = "Recettes";
 const RECIPE_SHEET_TITLE = "Recettes";

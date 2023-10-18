@@ -1,6 +1,6 @@
 import { readList, calculateGeneratedList, updateGeneratedList, GeneratedList } from "./list";
 import { resizeRecipe, type Recipe } from "./recipe";
-import { reduceQuantities } from "./quantity";
+import { reduceQuantities, parseQuantity } from "./quantity";
 
 describe("list", () => {
   beforeEach(() => {
@@ -8,6 +8,7 @@ describe("list", () => {
     (global as any).LIST_SHEET_ARTICLE_RANGE = "LIST_SHEET_ARTICLE_RANGE";
     (global as any).GENERATED_LIST_SHEET_NAME = "GENERATED_LIST_SHEET_NAME";
     (global as any).GENERATED_LIST_SHEET_ARTICLE_RANGE = "GENERATED_LIST_SHEET_ARTICLE_RANGE";
+    (global as any).parseQuantity = parseQuantity;
   });
 
   afterEach(() => {
@@ -15,6 +16,7 @@ describe("list", () => {
     delete (global as any).LIST_SHEET_ARTICLE_RANGE;
     delete (global as any).GENERATED_LIST_SHEET_NAME;
     delete (global as any).GENERATED_LIST_SHEET_ARTICLE_RANGE;
+    delete (global as any).parseQuantity;
   });
 
   describe("readList", () => {
@@ -147,38 +149,38 @@ describe("list", () => {
       updateGeneratedList(spreadsheet as any, {}, list);
 
       expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.arrayContaining([
-        [false, "Pain", "500g"],
-        [true, "Baguette", "250g"],
+        [false, "Pain", "500g", ""],
+        [true, "Baguette", "250g", ""],
       ]));
     });
 
     it("should remove articles that are no longer listed", () => {
       updateGeneratedList(spreadsheet as any, {}, list);
 
-      expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.not.arrayContaining([[false, "Beurre", "500g"]]));
-      expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.not.arrayContaining([[true, "Crème Fraîche", "5cl"]]));
+      expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.not.arrayContaining([[false, "Beurre", "500g", ""]]));
+      expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.not.arrayContaining([[true, "Crème Fraîche", "5cl", ""]]));
     });
 
     it("should add articles that were not listed before", () => {
       updateGeneratedList(spreadsheet as any, {}, list);
 
-      expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.arrayContaining([[false, "Saucisson", "100g"]]));
+      expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.arrayContaining([[false, "Saucisson", "100g", ""]]));
     });
 
     it("should 'uncheck' articles that have changed quantities", () => {
       updateGeneratedList(spreadsheet as any, {}, list);
 
       expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.arrayContaining([
-        [false, "Yaourt", "1l"],
-        [false, "Œufs", "12"],
+        [false, "Yaourt", "1l", ""],
+        [false, "Œufs", "12", ""],
       ]));
     });
 
     it("should sort articles by department, and then by name", () => {
       updateGeneratedList(spreadsheet as any, {
-        "Pain": { name: "Pain", department: "02. Pains", price: "" },
-        "Baguette": { name: "Baguette", department: "02. Pains", price: "" },
-        "Yaourt": { name: "Yaourt", department: "01. Produits Laitiers", price: "" },
+        "Pain": { name: "Pain", department: "02. Pains" },
+        "Baguette": { name: "Baguette", department: "02. Pains" },
+        "Yaourt": { name: "Yaourt", department: "01. Produits Laitiers" },
       }, list);
 
       expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues().map(row => row[1])).toStrictEqual([

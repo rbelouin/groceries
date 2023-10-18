@@ -1,6 +1,11 @@
 import type { getAllRecipesByName as GetAllRecipesByName, resizeRecipe as ResizeRecipe, Recipe } from "./recipe";
-import type { reduceQuantities as ReduceQuantities } from "./quantity";
+import type { parseQuantity as ParseQuantity, reduceQuantities as ReduceQuantities } from "./quantity";
 import type { getStoreArticles as GetStoreArticles, StoreArticle } from "./stores";
+import type {
+  serializeTotalPrice as SerializeTotalPrice,
+  Price,
+  getTotalPriceForQuantity as GetTotalPriceForQuantity,
+} from "./price";
 
 export type List = ListItem[];
 export type ListItem = {
@@ -15,12 +20,15 @@ export type GeneratedListItem = {
   checked: boolean;
 };
 
-export type SortedGeneratedList = { name: string; quantity: string; checked: boolean }[];
+export type SortedGeneratedList = { name: string; quantity: string; checked: boolean; department?: string; price?: Price }[];
 
 declare const getAllRecipesByName: typeof GetAllRecipesByName;
 declare const resizeRecipe: typeof ResizeRecipe;
 declare const reduceQuantities: typeof ReduceQuantities;
 declare const getStoreArticles: typeof GetStoreArticles;
+declare const serializeTotalPrice: typeof SerializeTotalPrice;
+declare const getTotalPriceForQuantity: typeof GetTotalPriceForQuantity;
+declare const parseQuantity: typeof ParseQuantity;
 declare const LIST_SHEET_NAME: string;
 declare const LIST_SHEET_ARTICLE_RANGE: string;
 declare const GENERATED_LIST_SHEET_NAME: string;
@@ -65,25 +73,35 @@ export function updateGeneratedList(spreadsheet: GoogleAppsScript.Spreadsheet.Sp
 }
 
 function sortGeneratedList(articlesByName: Record<string, StoreArticle>, list: GeneratedList): SortedGeneratedList {
-  const items = Object.entries(list).map(([name, { quantity, checked }]) => ({ checked, name, quantity }));
+  const items = Object.entries(list).map(([name, { quantity, checked }]) => {
+    const article: StoreArticle | undefined = articlesByName[name];
+    return {
+      checked,
+      name,
+      quantity,
+      department: article?.department,
+      price: article?.price,
+    };
+  });
+
   items.sort((itemA, itemB) => {
-    if (articlesByName[itemA.name] && articlesByName[itemB.name]) {
-      if (articlesByName[itemA.name].department > articlesByName[itemB.name].department) {
+    if (itemA.department && itemB.department) {
+      if (itemA.department > itemB.department) {
         return 1;
       }
 
-      if (articlesByName[itemA.name].department < articlesByName[itemB.name].department) {
+      if (itemA.department < itemB.department) {
         return -1;
       }
 
       return itemA.name > itemB.name ? 1 : -1;
     }
 
-    if (articlesByName[itemA.name] && !articlesByName[itemB.name]) {
+    if (itemA.department && !itemB.department) {
       return 1;
     }
 
-    if (!articlesByName[itemA.name] && articlesByName[itemB.name]) {
+    if (!itemA.department && itemB.department) {
       return -1;
     }
 
@@ -102,8 +120,17 @@ function readGeneratedList(range: GoogleAppsScript.Spreadsheet.Range): Generated
 
 function writeGeneratedList(range: GoogleAppsScript.Spreadsheet.Range, list: SortedGeneratedList) {
   const numRows = range.getNumRows();
-  const items = list.map(({ name, quantity, checked }) => ([checked, name, quantity]));
-  const blankRows = new Array(numRows - items.length).fill(["", "", ""]);
+  const items = list.map(({ name, quantity, checked, price }) => {
+    const parsedQuantity = quantity ? parseQuantity(quantity) : "";
+    const totalPrice = typeof parsedQuantity !== "string" && price ? getTotalPriceForQuantity(price, parsedQuantity) : "";
+
+    if (price && quantity && !totalPrice) {
+      console.error(`Something is wrong with article: ${name}`);
+    }
+
+    return [checked, name, quantity, totalPrice ? serializeTotalPrice(totalPrice) : ""];
+  });
+  const blankRows = new Array(numRows - items.length).fill(["", "", "", ""]);
 
   range.setValues(items.concat(blankRows));
 }
