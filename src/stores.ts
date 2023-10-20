@@ -1,12 +1,15 @@
+import type { Price, parsePrice as ParsePrice } from "./price";
+
 declare const LIST_SHEET_NAME: string;
 declare const LIST_SHEET_STORE_NAME: string;
 declare const LIST_SHEET_NO_STORE: string;
 declare const STORE_SHEET_NAME: string;
+declare const parsePrice: typeof ParsePrice;
 
 export type StoreArticle = {
   name: string;
   department: string;
-  price: string;
+  price?: Price;
 };
 
 export function getStoreNames(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet): string[] {
@@ -33,7 +36,7 @@ export function getStoreArticles(spreadsheet: GoogleAppsScript.Spreadsheet.Sprea
   return Object.fromEntries(storeSheet.getRange("A3:Y").getValues().flatMap(row => {
     const name: string = row[0];
     const department: string = row[storeIndex];
-    const price: string = row[storeIndex + 1];
+    const price = row[storeIndex + 1] ? parsePrice(row[storeIndex + 1]) : undefined;
 
     if (name && department) return [[name, {
       name,

@@ -1,10 +1,12 @@
 import { getStoreNames, getStoreArticles } from "./stores";
+import { parsePrice } from "./price";
 
 beforeEach(() => {
   (global as any).LIST_SHEET_NAME = "List";
   (global as any).LIST_SHEET_STORE_NAME = "StoreName";
   (global as any).LIST_SHEET_NO_STORE = "No Store";
   (global as any).STORE_SHEET_NAME = "Stores";
+  (global as any).parsePrice = parsePrice;
 });
 
 afterEach(() => {
@@ -12,6 +14,7 @@ afterEach(() => {
   delete (global as any).LIST_SHEET_STORE_NAME;
   delete (global as any).LIST_SHEET_NO_STORE;
   delete (global as any).STORE_SHEET_NAME;
+  delete (global as any).parsePrice;
 });
 
 describe("stores", () => {
@@ -187,12 +190,20 @@ describe("stores", () => {
         "Yaourt": {
           name: "Yaourt",
           department: "04. Produits Laitiers",
-          price: "4€",
+          price: {
+            value: 4,
+            currency: "€",
+            quantity: { type: "countable", count: 1, unit: undefined },
+          },
         },
         "Fromage": {
           name: "Fromage",
           department: "04. Produits Laitiers",
-          price: "5€",
+          price: {
+            value: 5,
+            currency: "€",
+            quantity: { type: "countable", count: 1, unit: undefined },
+          },
         },
       });
       expect(spreadsheet.getSheetByName).toHaveBeenCalledWith("List");
