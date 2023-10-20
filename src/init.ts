@@ -11,6 +11,7 @@ const LIST_SHEET_NO_STORE = "Aucun Magasin";
 const GENERATED_LIST_SHEET_NAME = "Liste générée";
 const GENERATED_LIST_SHEET_TITLE = "Liste générée";
 const GENERATED_LIST_SHEET_ARTICLE_RANGE = "A3:D";
+const GENERATED_LIST_SHEET_PRICE = "Prix";
 
 const RECIPE_SHEET_NAME = "Recettes";
 const RECIPE_SHEET_TITLE = "Recettes";
@@ -37,6 +38,7 @@ function init() {
   migrate0000(spreadsheet);
   migrate0001(spreadsheet);
   migrate0002(spreadsheet);
+  migrate0003(spreadsheet);
 }
 
 function createListSheet(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
@@ -210,7 +212,25 @@ function migrate0002(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
       .setDataValidation(SpreadsheetApp.newDataValidation()
                         .requireValueInList([LIST_SHEET_NO_STORE].concat(getStoreNames(spreadsheet)))
                         .build());
-                         
+
     version.setValue(3);
+  }
+}
+
+function migrate0003(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
+  const listSheet = spreadsheet.getSheetByName(LIST_SHEET_NAME);
+  if (!listSheet) return;
+
+  const version = listSheet.getRange("D1");
+
+  if (version.getValue() === 3) {
+    const generatedListSheet = spreadsheet.getSheetByName(GENERATED_LIST_SHEET_NAME);
+    if (generatedListSheet) {
+      generatedListSheet.getRange("D2")
+        .setValue(GENERATED_LIST_SHEET_PRICE)
+        .setFontStyle("italic");
+    }
+
+    version.setValue(4);
   }
 }
