@@ -8,6 +8,8 @@ describe("list", () => {
     (global as any).LIST_SHEET_ARTICLE_RANGE = "LIST_SHEET_ARTICLE_RANGE";
     (global as any).GENERATED_LIST_SHEET_NAME = "GENERATED_LIST_SHEET_NAME";
     (global as any).GENERATED_LIST_SHEET_ARTICLE_RANGE = "GENERATED_LIST_SHEET_ARTICLE_RANGE";
+    (global as any).GENERATED_LIST_SHEET_PRICE_RANGE = "GENERATED_LIST_SHEET_PRICE_RANGE";
+    (global as any).GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE = "GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE";
     (global as any).parseQuantity = parseQuantity;
   });
 
@@ -16,6 +18,8 @@ describe("list", () => {
     delete (global as any).LIST_SHEET_ARTICLE_RANGE;
     delete (global as any).GENERATED_LIST_SHEET_NAME;
     delete (global as any).GENERATED_LIST_SHEET_ARTICLE_RANGE;
+    delete (global as any).GENERATED_LIST_SHEET_PRICE_RANGE;
+    delete (global as any).GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE;
     delete (global as any).parseQuantity;
   });
 
@@ -139,8 +143,19 @@ describe("list", () => {
 
       spreadsheet = {
         getRange: (notation: string) => {
-          expect(notation).toBe("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE");
-          return range;
+          if (notation === "GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE") {
+            return range;
+          }
+
+          if (notation === "GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_PRICE_RANGE") {
+            return createRangeFromValues([]);
+          }
+
+          if (notation === "GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE") {
+            return createRangeFromValues([[""]]);
+          }
+
+          throw new Error(`Unsupported notation: ${notation}`);
         },
       } as Partial<GoogleAppsScript.Spreadsheet.Spreadsheet>;
     });
@@ -207,6 +222,7 @@ function createRangeFromValues(initialValues: any[][]): GoogleAppsScript.Spreads
   const range = {
     getNumRows: () => values.length,
     getValues: () => values,
+    setValue: (newValue: any) => { values[0][0] = newValue; },
     setValues: (newValues: any[][]) => { values = newValues },
   } as Partial<GoogleAppsScript.Spreadsheet.Range>;
 

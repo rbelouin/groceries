@@ -33,6 +33,8 @@ declare const LIST_SHEET_NAME: string;
 declare const LIST_SHEET_ARTICLE_RANGE: string;
 declare const GENERATED_LIST_SHEET_NAME: string;
 declare const GENERATED_LIST_SHEET_ARTICLE_RANGE: string;
+declare const GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE: string;
+declare const GENERATED_LIST_SHEET_PRICE_RANGE: string;
 
 export function calculateAndUpdateGeneratedList(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
   const recipesByName = getAllRecipesByName(spreadsheet);
@@ -70,6 +72,10 @@ export function updateGeneratedList(spreadsheet: GoogleAppsScript.Spreadsheet.Sp
   }])));
 
   writeGeneratedList(range, sortGeneratedList(articlesByName, newList));
+  updateGeneratedPrice(
+    spreadsheet.getRange(`${GENERATED_LIST_SHEET_NAME}!${GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE}`),
+    spreadsheet.getRange(`${GENERATED_LIST_SHEET_NAME}!${GENERATED_LIST_SHEET_PRICE_RANGE}`)
+  );
 }
 
 function sortGeneratedList(articlesByName: Record<string, StoreArticle>, list: GeneratedList): SortedGeneratedList {
@@ -133,4 +139,22 @@ function writeGeneratedList(range: GoogleAppsScript.Spreadsheet.Range, list: Sor
   const blankRows = new Array(numRows - items.length).fill(["", "", "", ""]);
 
   range.setValues(items.concat(blankRows));
+}
+
+function updateGeneratedPrice(
+  totalPriceRange: GoogleAppsScript.Spreadsheet.Range,
+  priceRange: GoogleAppsScript.Spreadsheet.Range,
+) {
+  const totalPrices = priceRange.getValues().reduce((acc, row) => {
+    const result = row[0].match(/^([0-9.]+)(\S+)$/);
+    if (!result) return acc;
+
+    const [_, valueString, currency] = result;
+    return {
+      ...acc,
+      [currency]: (acc[currency] || 0) + parseFloat(valueString),
+    };
+  }, {} as Record<string, number>);
+
+  totalPriceRange.setValue(Object.entries(totalPrices).map(([currency, value]) => `${Math.round(value * 100) / 100}${currency}`).join("\n"));
 }
