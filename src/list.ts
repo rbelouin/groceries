@@ -120,7 +120,7 @@ function sortGeneratedList(articlesByName: Record<string, StoreArticle>, list: G
 function readGeneratedList(range: GoogleAppsScript.Spreadsheet.Range): GeneratedList {
   return range.getValues().reduce((acc, [checked, name, quantity]) => !name ? acc : ({
     ...acc,
-    [name]: { quantity, checked },
+    [name]: { quantity: quantity.toString(), checked },
   }), {});
 }
 
