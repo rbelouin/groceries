@@ -115,7 +115,7 @@ describe("list", () => {
         [false, "Beurre", "500g"],
         [true, "Crème Fraîche", "5cl"],
         [false, "Yaourt", "6 pots"],
-        [true, "Œufs", "6"],
+        [true, "Œufs", 6],
       ]);
 
       list = {
@@ -188,6 +188,20 @@ describe("list", () => {
       expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.arrayContaining([
         [false, "Yaourt", "1l", ""],
         [false, "Œufs", "12", ""],
+      ]));
+    });
+
+    it("should keep checked the articles that have not changed quantities", () => {
+      updateGeneratedList(spreadsheet as any, {}, {
+        ...list,
+        "Œufs": {
+          quantity: "6",
+          checked: true,
+        },
+      });
+
+      expect(spreadsheet.getRange!("GENERATED_LIST_SHEET_NAME!GENERATED_LIST_SHEET_ARTICLE_RANGE").getValues()).toStrictEqual(expect.arrayContaining([
+        [true, "Œufs", "6", ""],
       ]));
     });
 
