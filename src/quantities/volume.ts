@@ -10,6 +10,10 @@ export class Volume implements PhysicalQuantity {
     this.milliliters = Math.round(milliliters);
   }
 
+  static supportsUnit(unit: string): unit is VolumeUnit {
+    return (Volume.units as readonly string[]).indexOf(unit) >= 0;
+  }
+
   static from(count: number, unit: VolumeUnit): Volume {
     switch (unit) {
       case "ml":

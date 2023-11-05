@@ -10,6 +10,10 @@ export class Mass implements PhysicalQuantity {
     this.milligrams = Math.round(milligrams);
   }
 
+  static supportsUnit(unit: string): unit is MassUnit {
+    return (Mass.units as readonly string[]).indexOf(unit) >= 0;
+  }
+
   static from(count: number, unit: MassUnit): Mass {
     switch (unit) {
       case "mg":
