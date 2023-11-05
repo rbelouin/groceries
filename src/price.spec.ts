@@ -1,16 +1,19 @@
 import { getTotalPriceForQuantity, parsePrice, serializeTotalPrice } from "./price";
-import { parseQuantity } from "./quantity";
+import { MixedQuantities } from "./quantities";
 
 const error = console.error;
+const warn = console.warn;
 
 beforeEach(() => {
-  (global as any).parseQuantity = parseQuantity;
+  (global as any).MixedQuantities = MixedQuantities;
   console.error = jest.fn();
+  console.warn = jest.fn();
 });
 
 afterEach(() => {
-  delete (global as any).parseQuantity;
+  delete (global as any).MixedQuantities;
   console.error = error;
+  console.warn = warn;
 });
 
 describe("price", () => {
@@ -19,109 +22,73 @@ describe("price", () => {
       expect(() => parsePrice("Coucou !")).toThrow("Invalid price: Coucou !");
     });
 
-    it("should throw an error if the quantity is invalid", () => {
-      expect(() => parsePrice("3€/plop")).toThrow("Invalid quantity: plop");
-    });
-
     [{
       input: "4kr",
       output: {
         value: 4,
         currency: "kr",
-        quantity: {
-          type: "countable",
-          count: 1,
-          unit: undefined,
-        },
+        quantity: MixedQuantities.from(1),
       },
     }, {
       input: "4€",
       output: {
         value: 4,
         currency: "€",
-        quantity: {
-          type: "countable",
-          count: 1,
-          unit: undefined,
-        },
+        quantity: MixedQuantities.from(1),
       },
     }, {
       input: "4kr/kg",
       output: {
         value: 4,
         currency: "kr",
-        quantity: {
-          type: "weight",
-          count: 1000000,
-          unit: "mg",
-        },
+        quantity: MixedQuantities.from(1, "kg"),
       },
     }, {
       input: "8kr/12",
       output: {
         value: 8,
         currency: "kr",
-        quantity: {
-          type: "countable",
-          count: 12,
-          unit: undefined,
-        },
+        quantity: MixedQuantities.from(12),
       },
     }, {
       input: "16kr/250ml",
       output: {
         value: 16,
         currency: "kr",
-        quantity: {
-          type: "volume",
-          count: 250,
-          unit: "ml",
-        },
+        quantity: MixedQuantities.from(250, "ml"),
       },
     }].forEach(({ input, output }) => it(`should parse ${input}`, () => {
-      expect(parsePrice(input)).toStrictEqual(output);
+      expect(parsePrice(input)).toEqual(output);
     }));
   });
 
   describe("getTotalPriceForQuantity", () => {
     [{
-      priceQuantity: { type: "countable", count: 4, unit: undefined } as const,
-      quantity: { type: "volume", count: 4, unit: "ml" } as const,
+      priceQuantity: MixedQuantities.from(4),
+      quantity: MixedQuantities.from(4, "ml"),
     }, {
-      priceQuantity: { type: "volume", count: 5, unit: "ml" } as const,
-      quantity: { type: "weight", count: 5, unit: "kg" } as const,
+      priceQuantity: MixedQuantities.from(5, "ml"),
+      quantity: MixedQuantities.from(5, "kg"),
     }, {
-      priceQuantity: { type: "weight", count: 6, unit: "mg" } as const,
-      quantity: { type: "countable", count: 6, unit: undefined } as const,
+      priceQuantity: MixedQuantities.from(6, "mg"),
+      quantity: MixedQuantities.from(6),
     }].forEach(({ priceQuantity, quantity }) => {
-      it(`should return "undefined" if quantities are not of the same dimension. e.g. ${priceQuantity.type} != ${quantity.type}`, () => {
+      it(`should return "undefined" if quantities are not of the same dimension. e.g. ${priceQuantity} != ${quantity}`, () => {
         expect(getTotalPriceForQuantity({ value: 4, currency: "kr", quantity: priceQuantity }, quantity)).toBeUndefined();
       });
     });
 
     [{
-      priceQuantity: { type: "volume", count: 5, unit: "ml" } as const,
-      quantity: { type: "volume", count: 5, unit: "l" } as const,
-    }, {
-      priceQuantity: { type: "weight", count: 6, unit: "mg" } as const,
-      quantity: { type: "weight", count: 6, unit: "kg" } as const,
-    }].forEach(({ priceQuantity, quantity }) => {
-      it(`should return "undefined" if quantities are not of the same unit. e.g. ${priceQuantity.unit} != ${quantity.unit}`, () => {
-        expect(getTotalPriceForQuantity({ value: 4, currency: "kr", quantity: priceQuantity }, quantity)).toBeUndefined();
-      });
-    });
-
-    [{
-      price: { value: 4, currency: "kr", quantity: { type: "volume", count: 5, unit: "ml" }} as const,
-      quantity: { type: "volume", count: 10, unit: "ml" } as const,
+      price: { value: 4, currency: "kr", quantity: MixedQuantities.from(5, "ml")},
+      quantity: MixedQuantities.from(10, "ml"),
       expectedPrice: { value: 8, currency: "kr" },
     }, {
-      price: { value: 5, currency: "€", quantity: { type: "weight", count: 3, unit: "mg" }} as const,
-      quantity: { type: "weight", count: 10, unit: "mg" } as const,
+      price: { value: 5, currency: "€", quantity: MixedQuantities.from(3, "mg")} as const,
+      quantity: MixedQuantities.from(10, "mg"),
       expectedPrice: { value: 16.67, currency: "€" },
     }].forEach(({ price, quantity, expectedPrice }, index) => {
       it(`should return the total price otherwise. #${index}`, () => {
-        expect(getTotalPriceForQuantity(price, quantity)).toStrictEqual(expectedPrice);
+        expect(getTotalPriceForQuantity(price, quantity)).toEqual(expectedPrice);
       });
     });
   });

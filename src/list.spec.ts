@@ -1,6 +1,6 @@
 import { readList, calculateGeneratedList, updateGeneratedList, GeneratedList } from "./list";
 import { resizeRecipe, type Recipe } from "./recipe";
-import { reduceQuantities, parseQuantity } from "./quantity";
+import { MixedQuantities } from "./quantities";
 
 describe("list", () => {
   beforeEach(() => {
@@ -10,7 +10,7 @@ describe("list", () => {
     (global as any).GENERATED_LIST_SHEET_ARTICLE_RANGE = "GENERATED_LIST_SHEET_ARTICLE_RANGE";
     (global as any).GENERATED_LIST_SHEET_PRICE_RANGE = "GENERATED_LIST_SHEET_PRICE_RANGE";
     (global as any).GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE = "GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE";
-    (global as any).parseQuantity = parseQuantity;
+    (global as any).MixedQuantities = MixedQuantities;
   });
 
   afterEach(() => {
@@ -20,7 +20,7 @@ describe("list", () => {
     delete (global as any).GENERATED_LIST_SHEET_ARTICLE_RANGE;
     delete (global as any).GENERATED_LIST_SHEET_PRICE_RANGE;
     delete (global as any).GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE;
-    delete (global as any).parseQuantity;
+    delete (global as any).MixedQuantities;
   });
 
   describe("readList", () => {
@@ -72,12 +72,10 @@ describe("list", () => {
 
     beforeEach(() => {
       (global as any).resizeRecipe = resizeRecipe;
-      (global as any).reduceQuantities = reduceQuantities;
     });
 
     afterEach(() => {
       delete (global as any).resizeRecipe;
-      delete (global as any).reduceQuantities;
     });
 
     it("should expand recipes and deduplicate articles", () => {

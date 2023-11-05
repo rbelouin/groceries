@@ -1,5 +1,6 @@
 import { getStoreNames, getStoreArticles } from "./stores";
 import { parsePrice } from "./price";
+import { MixedQuantities } from "./quantities";
 
 beforeEach(() => {
   (global as any).LIST_SHEET_NAME = "List";
@@ -7,6 +8,7 @@ beforeEach(() => {
   (global as any).LIST_SHEET_NO_STORE = "No Store";
   (global as any).STORE_SHEET_NAME = "Stores";
   (global as any).parsePrice = parsePrice;
+  (global as any).MixedQuantities = MixedQuantities;
 });
 
 afterEach(() => {
@@ -15,6 +17,7 @@ afterEach(() => {
   delete (global as any).LIST_SHEET_NO_STORE;
   delete (global as any).STORE_SHEET_NAME;
   delete (global as any).parsePrice;
+  delete (global as any).MixedQuantities;
 });
 
 describe("stores", () => {
@@ -193,7 +196,7 @@ describe("stores", () => {
           price: {
             value: 4,
             currency: "€",
-            quantity: { type: "countable", count: 1, unit: undefined },
+            quantity: MixedQuantities.from(1),
           },
         },
         "Fromage": {
@@ -202,7 +205,7 @@ describe("stores", () => {
           price: {
             value: 5,
             currency: "€",
-            quantity: { type: "countable", count: 1, unit: undefined },
+            quantity: MixedQuantities.from(1),
           },
         },
       });
