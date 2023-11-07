@@ -2,6 +2,7 @@ import * as fc from "fast-check"
 import { MixedQuantities } from "./mixed-quantities";
 import { Volume } from "./volume";
 import { Mass } from "./mass";
+import { Length } from "./length";
 
 const warn = console.warn;
 beforeEach(() => {
@@ -26,6 +27,14 @@ describe("quantities/mixed-quantities", () => {
       fc.assert(fc.property(fc.nat(), fc.constantFrom(...Mass.units), (count, unit) => {
         expect(MixedQuantities.from(count, unit).inventory).toEqual({
           mass: Mass.from(count, unit),
+        });
+      }));
+    });
+
+    it("should recognize a length", () => {
+      fc.assert(fc.property(fc.nat(), fc.constantFrom(...Length.units), (count, unit) => {
+        expect(MixedQuantities.from(count, unit).inventory).toEqual({
+          length: Length.from(count, unit),
         });
       }));
     });
@@ -123,6 +132,14 @@ describe("quantities/mixed-quantities", () => {
       }));
     });
 
+    it("should invert the effect of multiplication on a pure length", () => {
+      fc.assert(fc.property(len({ min: 1 }), fc.nat(), (a, b) => {
+        const quantity = new MixedQuantities({ length: a });
+        const product = quantity.multiply(b);
+        expect(product.divide(quantity)).toBeCloseTo(b);
+      }));
+    });
+
     it("should invert the effect of multiplication on a quantity containing a single unknown unit", () => {
       fc.assert(fc.property(fc.integer({ min: 1 }), otherUnit(), fc.nat(), (a, unit, b) => {
         const quantity = new MixedQuantities({ unknown: new Map([[unit, a]]) });
@@ -179,6 +196,12 @@ describe("quantities/mixed-quantities", () => {
       }));
     });
 
+    it("should render a pure length as a length", () => {
+      fc.assert(fc.property(len(), (l) => {
+        expect(new MixedQuantities({ length: l }).toString()).toEqual(l.toString());
+      }));
+    });
+
     it("should render an illustrative example correctly", () => {
       expect(new MixedQuantities({
         volume: Volume.from(4.2, "cl"),
@@ -221,9 +244,9 @@ describe("quantities/mixed-quantities", () => {
 
 function otherUnit() {
   return fc.string()
-    .filter(str => ([...Volume.units, ...Mass.units] as readonly string[]).indexOf(str) === -1)
-    .filter(str => str.indexOf("|") === -1)
-    .map(str => str.replace(/ /g, ""));
+    .map(str => str.replace(/ /g, ""))
+    .filter(str => ([...Volume.units, ...Mass.units, ...Length.units] as readonly string[]).indexOf(str) === -1)
+    .filter(str => str.indexOf("|") === -1);
 }
 
 function vol(constraints?: fc.IntegerConstraints): fc.Arbitrary<Volume> {
@@ -232,6 +255,10 @@ function vol(constraints?: fc.IntegerConstraints): fc.Arbitrary<Volume> {
 
 function mass(constraints?: fc.IntegerConstraints): fc.Arbitrary<Mass> {
   return fc.integer({ min: 0, ...constraints }).map(milligrams => new Mass(milligrams));
+}
+
+function len(constraints?: fc.IntegerConstraints): fc.Arbitrary<Length> {
+  return fc.integer({ min: 0, ...constraints }).map(millimeters => new Length(millimeters));
 }
 
 function unknown(): fc.Arbitrary<Map<string, number>> {
@@ -244,6 +271,7 @@ function mixedQuantities(): fc.Arbitrary<MixedQuantities> {
   return fc.record({
     volume: fc.option(vol(), { nil: undefined }),
     mass: fc.option(mass(), { nil: undefined }),
+    length: fc.option(len(), { nil: undefined }),
     unknown: fc.option(unknown(), { nil: undefined }),
   }).map((inventory) => new MixedQuantities(inventory));
 }
