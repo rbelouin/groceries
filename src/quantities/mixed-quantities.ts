@@ -2,6 +2,7 @@ import type { PhysicalQuantity } from "./types";
 import { Mass } from "./mass";
 import { Volume } from "./volume";
 import { Length } from "./length";
+import { Area } from "./xarea";
 
 export class MixedQuantities implements PhysicalQuantity {
 
@@ -9,6 +10,7 @@ export class MixedQuantities implements PhysicalQuantity {
     volume?: Volume;
     mass?: Mass;
     length?: Length;
+    area?: Area;
     unknown?: Map<string, number>;
   };
 
@@ -50,6 +52,12 @@ export class MixedQuantities implements PhysicalQuantity {
       });
     }
 
+    if (Area.supportsUnit(unit)) {
+      return new MixedQuantities({
+        area: Area.from(count, unit),
+      });
+    }
+
     const trimmedUnit = unit.trim();
     if (trimmedUnit !== "") {
       console.warn(`Unrecognized unit: ${trimmedUnit}`);
@@ -67,6 +75,7 @@ export class MixedQuantities implements PhysicalQuantity {
       volume: !this.inventory.volume ? quantities.inventory.volume : this.inventory.volume.add(quantities.inventory.volume),
       mass: !this.inventory.mass ? quantities.inventory.mass : this.inventory.mass.add(quantities.inventory.mass),
       length: !this.inventory.length ? quantities.inventory.length : this.inventory.length.add(quantities.inventory.length),
+      area: !this.inventory.area ? quantities.inventory.area : this.inventory.area.add(quantities.inventory.area),
       unknown: !this.inventory.unknown ? quantities.inventory.unknown : [...(quantities.inventory.unknown?.entries() || [])].reduce((acc, [key, value]) => {
         const previousValue = acc.get(key);
         if (previousValue) {
@@ -86,6 +95,7 @@ export class MixedQuantities implements PhysicalQuantity {
       volume: this.inventory.volume?.multiply(factor),
       mass: this.inventory.mass?.multiply(factor),
       length: this.inventory.length?.multiply(factor),
+      area: this.inventory.area?.multiply(factor),
       unknown: !this.inventory.unknown ? undefined : [...(this.inventory.unknown.entries())].reduce((acc, [key, value]) => {
         acc.set(key, value * factor);
         return acc;
@@ -109,6 +119,8 @@ export class MixedQuantities implements PhysicalQuantity {
           return this.inventory.mass!.divide(quantities.inventory.mass!);
         case "length":
           return this.inventory.length!.divide(quantities.inventory.length!);
+        case "area":
+          return this.inventory.area!.divide(quantities.inventory.area!);
         default:
           return this.inventory.unknown!.get(theseDimensions[0])! / quantities.inventory.unknown!.get(thoseDimensions[0])!;
       }
@@ -128,6 +140,7 @@ export class MixedQuantities implements PhysicalQuantity {
       this.inventory.volume?.toString(),
       this.inventory.mass?.toString(),
       this.inventory.length?.toString(),
+      this.inventory.area?.toString(),
       ...[...(this.inventory.unknown?.entries() || [])]
         .map(([key, value]) => key === "" ? value.toString() : `${value} ${key}`),
     ]

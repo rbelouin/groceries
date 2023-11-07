@@ -3,6 +3,7 @@ import { MixedQuantities } from "./mixed-quantities";
 import { Volume } from "./volume";
 import { Mass } from "./mass";
 import { Length } from "./length";
+import { Area } from "./xarea";
 
 const warn = console.warn;
 beforeEach(() => {
@@ -35,6 +36,14 @@ describe("quantities/mixed-quantities", () => {
       fc.assert(fc.property(fc.nat(), fc.constantFrom(...Length.units), (count, unit) => {
         expect(MixedQuantities.from(count, unit).inventory).toEqual({
           length: Length.from(count, unit),
+        });
+      }));
+    });
+
+    it("should recognize an area", () => {
+      fc.assert(fc.property(fc.nat(), fc.constantFrom(...Area.units), (count, unit) => {
+        expect(MixedQuantities.from(count, unit).inventory).toEqual({
+          area: Area.from(count, unit),
         });
       }));
     });
@@ -140,6 +149,14 @@ describe("quantities/mixed-quantities", () => {
       }));
     });
 
+    it("should invert the effect of multiplication on a pure area", () => {
+      fc.assert(fc.property(area({ min: 1 }), fc.nat(), (a, b) => {
+        const quantity = new MixedQuantities({ area: a });
+        const product = quantity.multiply(b);
+        expect(product.divide(quantity)).toBeCloseTo(b);
+      }));
+    });
+
     it("should invert the effect of multiplication on a quantity containing a single unknown unit", () => {
       fc.assert(fc.property(fc.integer({ min: 1 }), otherUnit(), fc.nat(), (a, unit, b) => {
         const quantity = new MixedQuantities({ unknown: new Map([[unit, a]]) });
@@ -202,6 +219,12 @@ describe("quantities/mixed-quantities", () => {
       }));
     });
 
+    it("should render a pure area as an area", () => {
+      fc.assert(fc.property(area(), (a) => {
+        expect(new MixedQuantities({ area: a }).toString()).toEqual(a.toString());
+      }));
+    });
+
     it("should render an illustrative example correctly", () => {
       expect(new MixedQuantities({
         volume: Volume.from(4.2, "cl"),
@@ -261,6 +284,10 @@ function len(constraints?: fc.IntegerConstraints): fc.Arbitrary<Length> {
   return fc.integer({ min: 0, ...constraints }).map(millimeters => new Length(millimeters));
 }
 
+function area(constraints?: fc.IntegerConstraints): fc.Arbitrary<Area> {
+  return fc.integer({ min: 0, ...constraints }).map(squaredMillimeters => new Area(squaredMillimeters));
+}
+
 function unknown(): fc.Arbitrary<Map<string, number>> {
   return fc.dictionary(otherUnit(), fc.nat())
     .filter(dict => Object.keys(dict).length > 0)
@@ -272,6 +299,7 @@ function mixedQuantities(): fc.Arbitrary<MixedQuantities> {
     volume: fc.option(vol(), { nil: undefined }),
     mass: fc.option(mass(), { nil: undefined }),
     length: fc.option(len(), { nil: undefined }),
+    area: fc.option(area(), { nil: undefined }),
     unknown: fc.option(unknown(), { nil: undefined }),
   }).map((inventory) => new MixedQuantities(inventory));
 }
