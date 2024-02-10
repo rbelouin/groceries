@@ -2152,6 +2152,13 @@ external-editor@^3.0.3:
     iconv-lite "^0.4.24"
     tmp "^0.0.33"
 
+fast-check@^3.13.2:
+  version "3.13.2"
+  resolved "https://registry.yarnpkg.com/fast-check/-/fast-check-3.13.2.tgz#1bea3b167f689b271535dde7569c2d56caa7e4ea"
+  integrity sha512-ouTiFyeMoqmNg253xqy4NSacr5sHxH6pZpLOaHgaAdgZxFWdtsfxExwolpveoAE9CJdV+WYjqErNGef6SqA5Mg==
+  dependencies:
+    pure-rand "^6.0.0"
+
 fast-json-stable-stringify@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/fast-json-stable-stringify/-/fast-json-stable-stringify-2.1.0.tgz#874bf69c6f404c2b5d99c481341399fd55892633"

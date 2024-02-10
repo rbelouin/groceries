@@ -1,11 +1,11 @@
-import type { ParsedQuantity, parseQuantity as ParseQuantity } from "./quantity";
+import type { MixedQuantities as MixedQuantitiesClass } from "./quantities";
 
-declare const parseQuantity: typeof ParseQuantity;
+declare const MixedQuantities: typeof MixedQuantitiesClass;
 
 export type Price = {
   value: number;
   currency: string;
-  quantity: ParsedQuantity;
+  quantity: MixedQuantitiesClass;
 };
 
 export type TotalPrice = {
@@ -23,8 +23,8 @@ export function parsePrice(str: string): Price {
   const value = parseFloat(valueString);
 
   const quantity = quantityString
-    ? parseQuantity((/^[0-9]/).test(quantityString) ? quantityString : `1${quantityString}`)
-    : { type: "countable" as const, count: 1, unit: undefined };
+    ? MixedQuantities.parse((/^[0-9]/).test(quantityString) ? quantityString : `1${quantityString}`)
+    : MixedQuantities.from(1);
 
   if (typeof quantity === "string") {
     throw new Error(`Invalid quantity: ${quantityString}`);
@@ -33,21 +33,16 @@ export function parsePrice(str: string): Price {
   return { value, currency, quantity };
 }
 
-export function getTotalPriceForQuantity(price: Price, quantity: ParsedQuantity): TotalPrice | undefined {
-  if (price.quantity.type !== quantity.type) {
-    console.error(`Incompatible quantity types: ${price.quantity.type} != ${quantity.type}`);
+export function getTotalPriceForQuantity(price: Price, quantity: MixedQuantitiesClass): TotalPrice | undefined {
+  try {
+    return {
+      value: Math.round(quantity.divide(price.quantity) * price.value * 100) / 100,
+      currency: price.currency,
+    };
+  } catch (err) {
+    console.error(err);
     return undefined;
   }
-
-  if (price.quantity.unit !== quantity.unit) {
-    console.error(`Unit conversion is not yet supported by getTotalPriceForQuantity: ${price.quantity.unit} != ${quantity.unit}`);
-    return undefined;
-  }
-
-  return {
-    value: Math.round(price.value / price.quantity.count * quantity.count * 100) / 100,
-    currency: price.currency,
-  };
 }
 
 export function serializeTotalPrice(price: TotalPrice): string {
