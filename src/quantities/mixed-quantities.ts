@@ -141,10 +141,21 @@ export class MixedQuantities implements PhysicalQuantity {
       this.inventory.mass?.toString(),
       this.inventory.length?.toString(),
       this.inventory.area?.toString(),
-      ...[...(this.inventory.unknown?.entries() || [])]
+      ...getEntries(this.inventory.unknown || new Map())
         .map(([key, value]) => key === "" ? value.toString() : `${value} ${key}`),
     ]
       .filter(item => item !== undefined)
       .join("|");
   }
+}
+
+// Map.prototype.entries does not seem to function as expected on Google Apps Scripts
+function getEntries(m: Map<string, number>): [string, number][] {
+  let entries = [] as [string, number][];
+
+  m.forEach((value, key) => {
+    entries.push([key, value]);
+  });
+
+  return entries;
 }
