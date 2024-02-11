@@ -1,11 +1,9 @@
-import type { MixedQuantities as MixedQuantitiesClass } from "./quantities";
-
-declare const MixedQuantities: typeof MixedQuantitiesClass;
+import { MixedQuantities } from "./quantities";
 
 export type Price = {
   value: number;
   currency: string;
-  quantity: MixedQuantitiesClass;
+  quantity: MixedQuantities;
 };
 
 export type TotalPrice = {
@@ -33,7 +31,7 @@ export function parsePrice(str: string): Price {
   return { value, currency, quantity };
 }
 
-export function getTotalPriceForQuantity(price: Price, quantity: MixedQuantitiesClass): TotalPrice | undefined {
+export function getTotalPriceForQuantity(price: Price, quantity: MixedQuantities): TotalPrice | undefined {
   try {
     return {
       value: Math.round(quantity.divide(price.quantity) * price.value * 100) / 100,

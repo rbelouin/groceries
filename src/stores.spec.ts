@@ -1,23 +1,16 @@
 import { getStoreNames, getStoreArticles } from "./stores";
-import { parsePrice } from "./price";
 import { MixedQuantities } from "./quantities";
 
-beforeEach(() => {
-  (global as any).LIST_SHEET_NAME = "List";
-  (global as any).LIST_SHEET_STORE_NAME = "StoreName";
-  (global as any).LIST_SHEET_NO_STORE = "No Store";
-  (global as any).STORE_SHEET_NAME = "Stores";
-  (global as any).parsePrice = parsePrice;
-  (global as any).MixedQuantities = MixedQuantities;
-});
-
-afterEach(() => {
-  delete (global as any).LIST_SHEET_NAME;
-  delete (global as any).LIST_SHEET_STORE_NAME;
-  delete (global as any).LIST_SHEET_NO_STORE;
-  delete (global as any).STORE_SHEET_NAME;
-  delete (global as any).parsePrice;
-  delete (global as any).MixedQuantities;
+jest.mock("./init", () => {
+  const originalModule = jest.requireActual("./init");
+  return {
+    __esModule: true,
+    ...originalModule,
+    LIST_SHEET_NAME: "List",
+    LIST_SHEET_STORE_NAME: "StoreName",
+    LIST_SHEET_NO_STORE: "No Store",
+    STORE_SHEET_NAME: "Stores",
+  };
 });
 
 describe("stores", () => {

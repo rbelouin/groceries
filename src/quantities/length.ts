@@ -1,17 +1,21 @@
 import type { PhysicalQuantity } from "./types";
 
-export type LengthUnit = (typeof Length.units)[number];
-export class Length implements PhysicalQuantity {
-  static units = ["mm", "cm", "dm", "m", "dam", "hm", "km"] as const;
+const units = ["mm", "cm", "dm", "m", "dam", "hm", "km"] as const;
+export type LengthUnit = (typeof units)[number];
 
+export class Length implements PhysicalQuantity {
   millimeters: number;
 
   constructor(millimeters: number) {
     this.millimeters = Math.round(millimeters);
   }
 
+  static units(): typeof units {
+    return units;
+  }
+
   static supportsUnit(unit: string): unit is LengthUnit {
-    return (Length.units as readonly string[]).indexOf(unit) >= 0;
+    return (Length.units() as readonly string[]).indexOf(unit) >= 0;
   }
 
   static from(count: number, unit: LengthUnit): Length {

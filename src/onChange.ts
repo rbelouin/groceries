@@ -1,7 +1,4 @@
-import type { calculateAndUpdateGeneratedList as CalculateAndUpdateGeneratedList } from "./list";
-
-// Google Apps Script does not like ESM modules
-declare const calculateAndUpdateGeneratedList: typeof CalculateAndUpdateGeneratedList;
+import { calculateAndUpdateGeneratedList } from "./list";
 
 export function onChange() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();

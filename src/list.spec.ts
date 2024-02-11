@@ -1,28 +1,21 @@
 import { readList, calculateGeneratedList, updateGeneratedList, GeneratedList } from "./list";
-import { resizeRecipe, type Recipe } from "./recipe";
-import { MixedQuantities } from "./quantities";
+import { type Recipe } from "./recipe";
+
+jest.mock("./init", () => {
+  const originalModule = jest.requireActual("./init");
+  return {
+    __esModule: true,
+    ...originalModule,
+    LIST_SHEET_NAME: "LIST_SHEET_NAME",
+    LIST_SHEET_ARTICLE_RANGE: "LIST_SHEET_ARTICLE_RANGE",
+    GENERATED_LIST_SHEET_NAME: "GENERATED_LIST_SHEET_NAME",
+    GENERATED_LIST_SHEET_ARTICLE_RANGE: "GENERATED_LIST_SHEET_ARTICLE_RANGE",
+    GENERATED_LIST_SHEET_PRICE_RANGE: "GENERATED_LIST_SHEET_PRICE_RANGE",
+    GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE: "GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE",
+  };
+});
 
 describe("list", () => {
-  beforeEach(() => {
-    (global as any).LIST_SHEET_NAME = "LIST_SHEET_NAME";
-    (global as any).LIST_SHEET_ARTICLE_RANGE = "LIST_SHEET_ARTICLE_RANGE";
-    (global as any).GENERATED_LIST_SHEET_NAME = "GENERATED_LIST_SHEET_NAME";
-    (global as any).GENERATED_LIST_SHEET_ARTICLE_RANGE = "GENERATED_LIST_SHEET_ARTICLE_RANGE";
-    (global as any).GENERATED_LIST_SHEET_PRICE_RANGE = "GENERATED_LIST_SHEET_PRICE_RANGE";
-    (global as any).GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE = "GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE";
-    (global as any).MixedQuantities = MixedQuantities;
-  });
-
-  afterEach(() => {
-    delete (global as any).LIST_SHEET_NAME;
-    delete (global as any).LIST_SHEET_ARTICLE_RANGE;
-    delete (global as any).GENERATED_LIST_SHEET_NAME;
-    delete (global as any).GENERATED_LIST_SHEET_ARTICLE_RANGE;
-    delete (global as any).GENERATED_LIST_SHEET_PRICE_RANGE;
-    delete (global as any).GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE;
-    delete (global as any).MixedQuantities;
-  });
-
   describe("readList", () => {
     it("should only read rows with non-empty names", () => {
       const values = [
@@ -69,14 +62,6 @@ describe("list", () => {
       { name: "Brioche", quantity: "1kg" },
       { name: "Pain", quantity: "600g" },
     ];
-
-    beforeEach(() => {
-      (global as any).resizeRecipe = resizeRecipe;
-    });
-
-    afterEach(() => {
-      delete (global as any).resizeRecipe;
-    });
 
     it("should expand recipes and deduplicate articles", () => {
       const generatedList = calculateGeneratedList(recipesByName, list);

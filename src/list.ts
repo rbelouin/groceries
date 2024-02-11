@@ -1,11 +1,8 @@
-import type { getAllRecipesByName as GetAllRecipesByName, resizeRecipe as ResizeRecipe, Recipe } from "./recipe";
-import type { MixedQuantities as MixedQuantitiesClass } from "./quantities";
-import type { getStoreArticles as GetStoreArticles, StoreArticle } from "./stores";
-import type {
-  serializeTotalPrice as SerializeTotalPrice,
-  Price,
-  getTotalPriceForQuantity as GetTotalPriceForQuantity,
-} from "./price";
+import { getAllRecipesByName, resizeRecipe, Recipe } from "./recipe";
+import { MixedQuantities } from "./quantities";
+import { getStoreArticles, StoreArticle } from "./stores";
+import { serializeTotalPrice, Price, getTotalPriceForQuantity } from "./price";
+import { GENERATED_LIST_SHEET_ARTICLE_RANGE, GENERATED_LIST_SHEET_NAME, GENERATED_LIST_SHEET_PRICE_RANGE, GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE, LIST_SHEET_ARTICLE_RANGE, LIST_SHEET_NAME } from "./init";
 
 export type List = ListItem[];
 export type ListItem = {
@@ -21,19 +18,6 @@ export type GeneratedListItem = {
 };
 
 export type SortedGeneratedList = { name: string; quantity: string; checked: boolean; department?: string; price?: Price }[];
-
-declare const getAllRecipesByName: typeof GetAllRecipesByName;
-declare const resizeRecipe: typeof ResizeRecipe;
-declare const getStoreArticles: typeof GetStoreArticles;
-declare const serializeTotalPrice: typeof SerializeTotalPrice;
-declare const getTotalPriceForQuantity: typeof GetTotalPriceForQuantity;
-declare const MixedQuantities: typeof MixedQuantitiesClass;
-declare const LIST_SHEET_NAME: string;
-declare const LIST_SHEET_ARTICLE_RANGE: string;
-declare const GENERATED_LIST_SHEET_NAME: string;
-declare const GENERATED_LIST_SHEET_ARTICLE_RANGE: string;
-declare const GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE: string;
-declare const GENERATED_LIST_SHEET_PRICE_RANGE: string;
 
 export function calculateAndUpdateGeneratedList(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet) {
   const recipesByName = getAllRecipesByName(spreadsheet);
@@ -55,7 +39,7 @@ export function calculateGeneratedList(recipesByName: Record<string, Recipe>, li
     .reduce((acc, item) => ({
       ...acc,
       [item.name]: MixedQuantities.parse(item.quantity).add(acc[item.name]),
-    }), {} as Record<string, MixedQuantitiesClass>);
+    }), {} as Record<string, MixedQuantities>);
 
   return Object.fromEntries(Object.entries(generatedList)
     .map(([name, quantity]) => ([name, { quantity: quantity.toString(), checked: false }])));

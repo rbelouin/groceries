@@ -5,13 +5,11 @@ const error = console.error;
 const warn = console.warn;
 
 beforeEach(() => {
-  (global as any).MixedQuantities = MixedQuantities;
   console.error = jest.fn();
   console.warn = jest.fn();
 });
 
 afterEach(() => {
-  delete (global as any).MixedQuantities;
   console.error = error;
   console.warn = warn;
 });
