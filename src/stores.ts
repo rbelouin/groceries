@@ -1,10 +1,5 @@
-import type { Price, parsePrice as ParsePrice } from "./price";
-
-declare const LIST_SHEET_NAME: string;
-declare const LIST_SHEET_STORE_NAME: string;
-declare const LIST_SHEET_NO_STORE: string;
-declare const STORE_SHEET_NAME: string;
-declare const parsePrice: typeof ParsePrice;
+import { LIST_SHEET_NAME, LIST_SHEET_NO_STORE, LIST_SHEET_STORE_NAME, STORE_SHEET_NAME } from "./init";
+import { type Price, parsePrice } from "./price";
 
 export type StoreArticle = {
   name: string;

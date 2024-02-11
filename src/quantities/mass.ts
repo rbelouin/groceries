@@ -1,17 +1,21 @@
 import type { PhysicalQuantity } from "./types";
 
-export type MassUnit = (typeof Mass.units)[number];
-export class Mass implements PhysicalQuantity {
-  static units = ["mg", "g", "hg", "kg"] as const;
+const units = ["mg", "g", "hg", "kg"] as const;
+export type MassUnit = (typeof units)[number];
 
+export class Mass implements PhysicalQuantity {
   milligrams: number;
 
   constructor(milligrams: number) {
     this.milligrams = Math.round(milligrams);
   }
 
+  static units(): typeof units {
+    return units;
+  }
+
   static supportsUnit(unit: string): unit is MassUnit {
-    return (Mass.units as readonly string[]).indexOf(unit) >= 0;
+    return (Mass.units() as readonly string[]).indexOf(unit) >= 0;
   }
 
   static from(count: number, unit: MassUnit): Mass {

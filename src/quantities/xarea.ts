@@ -11,18 +11,22 @@ function squaredUnits<Units extends readonly string[]>(units: Units): Squared<Un
   return units.flatMap(unit => [`${unit}2`, `${unit}^2`, `${unit}²`]) as Squared<Units>;
 }
 
-export type AreaUnit = (typeof Area.units)[number];
-export class Area implements PhysicalQuantity {
-  static units = squaredUnits(Length.units);
+const units = squaredUnits(Length.units());
+export type AreaUnit = (typeof units)[number];
 
+export class Area implements PhysicalQuantity {
   squaredMillimeters: number;
 
   constructor(squaredMillimeters: number) {
     this.squaredMillimeters = Math.round(squaredMillimeters);
   }
 
+  static units(): typeof units {
+    return units;
+  }
+
   static supportsUnit(unit: string): unit is AreaUnit {
-    return (Area.units as readonly string[]).indexOf(unit) >= 0;
+    return (Area.units() as readonly string[]).indexOf(unit) >= 0;
   }
 
   static from(count: number, unit: AreaUnit): Area {

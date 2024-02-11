@@ -17,7 +17,7 @@ afterEach(() => {
 describe("quantities/mixed-quantities", () => {
   describe("from", () => {
     it("should recognize a volume", () => {
-      fc.assert(fc.property(fc.nat(), fc.constantFrom(...Volume.units), (count, unit) => {
+      fc.assert(fc.property(fc.nat(), fc.constantFrom(...Volume.units()), (count, unit) => {
         expect(MixedQuantities.from(count, unit).inventory).toEqual({
           volume: Volume.from(count, unit),
         });
@@ -25,7 +25,7 @@ describe("quantities/mixed-quantities", () => {
     });
 
     it("should recognize a mass", () => {
-      fc.assert(fc.property(fc.nat(), fc.constantFrom(...Mass.units), (count, unit) => {
+      fc.assert(fc.property(fc.nat(), fc.constantFrom(...Mass.units()), (count, unit) => {
         expect(MixedQuantities.from(count, unit).inventory).toEqual({
           mass: Mass.from(count, unit),
         });
@@ -33,7 +33,7 @@ describe("quantities/mixed-quantities", () => {
     });
 
     it("should recognize a length", () => {
-      fc.assert(fc.property(fc.nat(), fc.constantFrom(...Length.units), (count, unit) => {
+      fc.assert(fc.property(fc.nat(), fc.constantFrom(...Length.units()), (count, unit) => {
         expect(MixedQuantities.from(count, unit).inventory).toEqual({
           length: Length.from(count, unit),
         });
@@ -41,7 +41,7 @@ describe("quantities/mixed-quantities", () => {
     });
 
     it("should recognize an area", () => {
-      fc.assert(fc.property(fc.nat(), fc.constantFrom(...Area.units), (count, unit) => {
+      fc.assert(fc.property(fc.nat(), fc.constantFrom(...Area.units()), (count, unit) => {
         expect(MixedQuantities.from(count, unit).inventory).toEqual({
           area: Area.from(count, unit),
         });
@@ -268,7 +268,7 @@ describe("quantities/mixed-quantities", () => {
 function otherUnit() {
   return fc.string()
     .map(str => str.replace(/ /g, ""))
-    .filter(str => ([...Volume.units, ...Mass.units, ...Length.units] as readonly string[]).indexOf(str) === -1)
+    .filter(str => ([...Volume.units(), ...Mass.units(), ...Length.units()] as readonly string[]).indexOf(str) === -1)
     .filter(str => str.indexOf("|") === -1);
 }
 

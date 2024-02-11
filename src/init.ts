@@ -1,36 +1,34 @@
-import type { getStoreNames as GetStoreNames } from "./stores";
+import { getStoreNames } from "./stores";
 
-const LIST_SHEET_NAME = "Liste";
-const LIST_SHEET_TITLE = "Liste de courses";
-const LIST_SHEET_ARTICLE_NAME = "Nom";
-const LIST_SHEET_ARTICLE_QUANTITY = "Quantité";
-const LIST_SHEET_ARTICLE_RANGE = "A4:B";
-const LIST_SHEET_STORE_NAME = "A2:C2";
-const LIST_SHEET_NO_STORE = "Aucun Magasin";
+export const LIST_SHEET_NAME = "Liste";
+export const LIST_SHEET_TITLE = "Liste de courses";
+export const LIST_SHEET_ARTICLE_NAME = "Nom";
+export const LIST_SHEET_ARTICLE_QUANTITY = "Quantité";
+export const LIST_SHEET_ARTICLE_RANGE = "A4:B";
+export const LIST_SHEET_STORE_NAME = "A2:C2";
+export const LIST_SHEET_NO_STORE = "Aucun Magasin";
 
-const GENERATED_LIST_SHEET_NAME = "Liste générée";
-const GENERATED_LIST_SHEET_TITLE = "Liste générée";
-const GENERATED_LIST_SHEET_ARTICLE_RANGE = "A3:D";
-const GENERATED_LIST_SHEET_PRICE = "Prix";
-const GENERATED_LIST_SHEET_PRICE_RANGE = "D3:D";
-const GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE = "D1";
+export const GENERATED_LIST_SHEET_NAME = "Liste générée";
+export const GENERATED_LIST_SHEET_TITLE = "Liste générée";
+export const GENERATED_LIST_SHEET_ARTICLE_RANGE = "A3:D";
+export const GENERATED_LIST_SHEET_PRICE = "Prix";
+export const GENERATED_LIST_SHEET_PRICE_RANGE = "D3:D";
+export const GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE = "D1";
 
-const RECIPE_SHEET_NAME = "Recettes";
-const RECIPE_SHEET_TITLE = "Recettes";
-const RECIPE_SHEET_RANGE = "A3:C";
-const RECIPE_SHEET_RECIPE = "Recette";
-const RECIPE_SHEET_INGREDIENT = "Ingrédient";
-const RECIPE_SHEET_QUANTITY = "Quantité";
+export const RECIPE_SHEET_NAME = "Recettes";
+export const RECIPE_SHEET_TITLE = "Recettes";
+export const RECIPE_SHEET_RANGE = "A3:C";
+export const RECIPE_SHEET_RECIPE = "Recette";
+export const RECIPE_SHEET_INGREDIENT = "Ingrédient";
+export const RECIPE_SHEET_QUANTITY = "Quantité";
 
-const STORE_SHEET_NAME = "Magasins";
-const STORE_SHEET_TITLE = "Magasins";
-const STORE_SHEET_ARTICLE_NAME = "Article";
-const STORE_SHEET_ARTICLE_DEPARTMENT = "Rayon";
-const STORE_SHEET_ARTICLE_PRICE = "Price";
+export const STORE_SHEET_NAME = "Magasins";
+export const STORE_SHEET_TITLE = "Magasins";
+export const STORE_SHEET_ARTICLE_NAME = "Article";
+export const STORE_SHEET_ARTICLE_DEPARTMENT = "Rayon";
+export const STORE_SHEET_ARTICLE_PRICE = "Price";
 
-declare const getStoreNames: typeof GetStoreNames;
-
-function init() {
+export function init() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   createListSheet(spreadsheet);
   createGeneratedListSheet(spreadsheet);

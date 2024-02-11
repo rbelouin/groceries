@@ -1,17 +1,21 @@
 import type { PhysicalQuantity } from "./types";
 
-export type VolumeUnit = (typeof Volume.units)[number];
-export class Volume implements PhysicalQuantity {
-  static units = ["ml", "c-à-c", "cl", "c-à-s", "dl", "l"] as const;
+const units = ["ml", "c-à-c", "cl", "c-à-s", "dl", "l"] as const;
+export type VolumeUnit = (typeof units)[number];
 
+export class Volume implements PhysicalQuantity {
   milliliters: number;
 
   constructor(milliliters: number) {
     this.milliliters = Math.round(milliliters);
   }
 
+  static units(): typeof units {
+    return units;
+  };
+
   static supportsUnit(unit: string): unit is VolumeUnit {
-    return (Volume.units as readonly string[]).indexOf(unit) >= 0;
+    return (Volume.units() as readonly string[]).indexOf(unit) >= 0;
   }
 
   static from(count: number, unit: VolumeUnit): Volume {
