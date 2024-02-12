@@ -59,7 +59,7 @@ export class MixedQuantities implements PhysicalQuantity {
     }
 
     const trimmedUnit = unit.trim();
-    if (trimmedUnit !== "") {
+    if (["", "p"].indexOf(trimmedUnit) < 0) {
       console.warn(`Unrecognized unit: ${trimmedUnit}`);
     }
 
