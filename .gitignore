@@ -131,3 +131,4 @@ dist
 
 # clasp
 .clasp.json
+.clasprc.json
