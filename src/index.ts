@@ -13,3 +13,12 @@ function init() {
 function sortAndFormatRecipes() {
   Recipe.sortAndFormatRecipes();
 }
+
+function listIngredientsWithMultipleDimensions(): string {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const recipes = Object.values(Recipe.getAllRecipesByName(spreadsheet));
+  const ingredients = Recipe.listIngredientsWithMultipleDimensions(recipes);
+
+  return "The following ingredients have quantities with various dimensions:\n" +
+    ingredients.map((ingredient) => `- ${ingredient.name} (${ingredient.quantity.dimensions()})`).join("\n");
+}

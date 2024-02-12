@@ -93,3 +93,17 @@ export function formatRecipes(range: GoogleAppsScript.Spreadsheet.Range) {
   const fontSizes = values.map(row => row.map(_ => row[0] ? 16 : 10));
   range.setFontSizes(fontSizes);
 }
+
+export function listIngredientsWithMultipleDimensions(recipes: Recipe[]): Ingredient[] {
+  return Object.values(recipes
+    .flatMap(recipe => recipe.ingredients)
+    .reduce((ingredientsByName, ingredient) => ({
+      ...ingredientsByName,
+      [ingredient.name]: {
+        ...ingredient,
+        quantity: ingredientsByName[ingredient.name]
+          ? ingredientsByName[ingredient.name].quantity.add(ingredient.quantity)
+          : ingredient.quantity,
+      },
+    }), {} as Record<string, Ingredient>)).filter(ingredient => ingredient.quantity.dimensions().length > 1);
+}
