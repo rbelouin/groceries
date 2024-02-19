@@ -247,6 +247,301 @@ describe("quantities/quantity", () => {
       });
     });
   });
+
+  describe("add", () => {
+    describe("compatible types", () => {
+      [
+        ["volume", vol()] as const,
+        ["mass", mass()] as const,
+        ["length", len()] as const,
+        ["area", area()] as const,
+      ].forEach(([type, quantity]) => {
+        describe(`${type} + ${type}`, () => {
+          it("should be commutative", () => {
+            fc.assert(
+              fc.property(quantity, quantity, (a, b) => {
+                const termA = Quantity.parse(a.toString())!;
+                const termB = Quantity.parse(b.toString())!;
+                expect(termA.add(termB)).toEqual(termB.add(termA));
+              }),
+            );
+          });
+
+          it("should be associative", () => {
+            fc.assert(
+              fc.property(quantity, quantity, quantity, (a, b, c) => {
+                const termA = Quantity.parse(a.toString())!;
+                const termB = Quantity.parse(b.toString())!;
+                const termC = Quantity.parse(c.toString())!;
+                expect(termA.add(termB.add(termC))).toEqual(
+                  termA.add(termB).add(termC),
+                );
+              }),
+            );
+          });
+
+          it("should have zero as an identity element", () => {
+            fc.assert(
+              fc.property(quantity, quantity, (a, b) => {
+                const termA = Quantity.parse(a.toString())!;
+                const termB = Quantity.parse(b.toString())!.multiply(0);
+                expect(termA.add(termB)).toEqual(termA);
+              }),
+            );
+          });
+        });
+      });
+
+      describe(`unknown + unknown (same unit)`, () => {
+        it("should be commutative", () => {
+          fc.assert(
+            fc.property(fc.nat(), fc.nat(), otherUnit(), (a, b, unit) => {
+              const termA = Quantity.from(a, unit);
+              const termB = Quantity.from(b, unit);
+              expect(termA.add(termB)).toEqual(termB.add(termA));
+            }),
+          );
+        });
+
+        it("should be associative", () => {
+          fc.assert(
+            fc.property(
+              fc.nat(),
+              fc.nat(),
+              fc.nat(),
+              otherUnit(),
+              (a, b, c, unit) => {
+                const termA = Quantity.from(a, unit);
+                const termB = Quantity.from(b, unit);
+                const termC = Quantity.from(c, unit);
+                expect(termA.add(termB.add(termC))).toEqual(
+                  termA.add(termB).add(termC),
+                );
+              },
+            ),
+          );
+        });
+
+        it("should have zero as an identity element", () => {
+          fc.assert(
+            fc.property(fc.nat(), otherUnit(), (a, unit) => {
+              const termA = Quantity.from(a, unit);
+              const termB = Quantity.from(0, unit);
+              expect(termA.add(termB)).toEqual(termA);
+            }),
+          );
+        });
+      });
+    });
+
+    describe("incompatible types with no conversion rules", () => {
+      [
+        ["volume", vol(), "mass", mass()] as const,
+        ["volume", vol(), "length", len()] as const,
+        ["volume", vol(), "area", area()] as const,
+        ["mass", mass(), "volume", vol()] as const,
+        ["mass", mass(), "length", len()] as const,
+        ["mass", mass(), "area", area()] as const,
+        ["length", len(), "volume", vol()] as const,
+        ["length", len(), "mass", mass()] as const,
+        ["length", len(), "area", area()] as const,
+        ["area", area(), "volume", vol()] as const,
+        ["area", area(), "mass", mass()] as const,
+        ["area", area(), "length", len()] as const,
+      ].forEach(([type1, quantity1, type2, quantity2]) => {
+        it(`should crash (${type1} + ${type2})`, () => {
+          fc.assert(
+            fc.property(quantity1, quantity2, (a, b) => {
+              const termA = Quantity.parse(a.toString())!;
+              const termB = Quantity.parse(b.toString())!;
+              expect(() => termA.add(termB)).toThrow(
+                `Incompatible types: ${type1} vs. ${type2}`,
+              );
+            }),
+          );
+        });
+      });
+
+      [
+        ["volume", vol()] as const,
+        ["mass", mass()] as const,
+        ["length", len()] as const,
+        ["area", area()] as const,
+      ].forEach(([type, quantity]) => {
+        it(`should crash (${type} + unknown)`, () => {
+          fc.assert(
+            fc.property(quantity, fc.nat(), otherUnit(), (a, b, unit) => {
+              const termA = Quantity.parse(a.toString())!;
+              const termB = Quantity.from(b, unit);
+              expect(() => termA.add(termB)).toThrow(
+                `Incompatible types: ${type} vs. unknown`,
+              );
+            }),
+          );
+        });
+
+        it(`should crash (unknown + ${type})`, () => {
+          fc.assert(
+            fc.property(fc.nat(), otherUnit(), quantity, (a, unit, b) => {
+              const termA = Quantity.from(a, unit);
+              const termB = Quantity.parse(b.toString())!;
+              expect(() => termA.add(termB)).toThrow(
+                `Incompatible types: unknown vs. ${type}`,
+              );
+            }),
+          );
+        });
+      });
+
+      it("should crash (unknown of different units)", () => {
+        fc.assert(
+          fc.property(
+            fc.nat(),
+            fc.nat(),
+            fc.uniqueArray(otherUnit(), { minLength: 2, maxLength: 2 }),
+            (a, b, [unitA, unitB]) => {
+              const termA = Quantity.from(a, unitA);
+              const termB = Quantity.from(b, unitB);
+              expect(() => termA.add(termB)).toThrow(
+                `Incompatible units: ${unitA} vs. ${unitB}`,
+              );
+            },
+          ),
+        );
+      });
+    });
+
+    describe("incompatible types with conversion rules", () => {
+      [
+        ["volume", vol({ min: 1 }), "mass", mass({ min: 1 })] as const,
+        ["volume", vol({ min: 1 }), "length", len({ min: 1 })] as const,
+        ["volume", vol({ min: 1 }), "area", area({ min: 1 })] as const,
+        ["mass", mass({ min: 1 }), "volume", vol({ min: 1 })] as const,
+        ["mass", mass({ min: 1 }), "length", len({ min: 1 })] as const,
+        ["mass", mass({ min: 1 }), "area", area({ min: 1 })] as const,
+        ["length", len({ min: 1 }), "volume", vol({ min: 1 })] as const,
+        ["length", len({ min: 1 }), "mass", mass({ min: 1 })] as const,
+        ["length", len({ min: 1 }), "area", area({ min: 1 })] as const,
+        ["area", area({ min: 1 }), "volume", vol({ min: 1 })] as const,
+        ["area", area({ min: 1 }), "mass", mass({ min: 1 })] as const,
+        ["area", area({ min: 1 }), "length", len({ min: 1 })] as const,
+      ].forEach(([type1, quantity1, type2, quantity2]) => {
+        it(`should be commutative (${type1} + ${type2})`, () => {
+          fc.assert(
+            fc.property(quantity1, fc.integer({ min:1, max: 100}), quantity2, fc.integer({ min:1, max: 100}), (a, factorA, b, factorB) => {
+              const roundedA = Quantity.parse(a.toString())!;
+              const roundedB = Quantity.parse(b.toString())!;
+              const conversions = `${roundedA.toString()}/${roundedB.toString()}`;
+
+              const termA = Quantity.parse(a.toString(), conversions)!.multiply(factorA);
+              const termB = Quantity.parse(b.toString(), conversions)!.multiply(factorB);
+
+              expect(termA.add(termB)).toEqual(termB.add(termA).tryConvertTo(termA));
+            }),
+          );
+        });
+
+        it(`should be associative (${type1} + ${type2} + ${type2})`, () => {
+          fc.assert(
+            fc.property(quantity1, fc.integer({ min:1, max: 100}), quantity2, fc.integer({ min:1, max: 100}), fc.integer({ min: 1, max: 100 }), (a, factorA, b, factorB, factorC) => {
+              const roundedA = Quantity.parse(a.toString())!;
+              const roundedB = Quantity.parse(b.toString())!;
+              const conversions = `${roundedA.toString()}/${roundedB.toString()}`;
+
+              const termA = Quantity.parse(a.toString(), conversions)!.multiply(factorA);
+              const termB = Quantity.parse(b.toString(), conversions)!.multiply(factorB);
+              const termC = Quantity.parse(b.toString(), conversions)!.multiply(factorC);
+
+              expect(termA.add(termB.add(termC))).toEqual(termA.add(termB).add(termC));
+            }),
+          );
+        });
+
+        it(`should have zero as an identity element (${type1} + ${type2})`, () => {
+          fc.assert(
+            fc.property(quantity1, fc.integer({ min:1, max: 100}), quantity2, (a, factorA, b) => {
+              const roundedA = Quantity.parse(a.toString())!;
+              const roundedB = Quantity.parse(b.toString())!;
+              const conversions = `${roundedA.toString()}/${roundedB.toString()}`;
+
+              const termA = Quantity.parse(a.toString(), conversions)!.multiply(factorA);
+              const termB = Quantity.parse(b.toString(), conversions)!.multiply(0);
+
+              expect(termA.add(termB)).toEqual(termA);
+            }),
+          );
+        });
+      });
+
+      [
+        ["volume", vol({ min: 1 })] as const,
+        ["mass", mass({ min: 1 })] as const,
+        ["length", len({ min: 1 })] as const,
+        ["area", area({ min: 1 })] as const,
+      ].forEach(([type1, quantity1]) => {
+        it(`should be commutative (${type1} + unknown)`, () => {
+          fc.assert(
+            fc.property(quantity1, fc.integer({ min:1, max: 100}), fc.integer({ min: 1, max: 100 }), otherUnit(), fc.integer({ min:1, max: 100}), (a, factorA, countB, unitB, factorB) => {
+              const roundedA = Quantity.parse(a.toString())!;
+              const roundedB = Quantity.from(countB, unitB);
+              const conversions = `${roundedA.toString()}/${roundedB.toString()}`;
+
+              const termA = Quantity.parse(roundedA.toString(), conversions)!.multiply(factorA);
+              const termB = Quantity.parse(roundedB.toString(), conversions)!.multiply(factorB);
+
+              expect(termA.add(termB)).toEqual(termB.add(termA).tryConvertTo(termA));
+            }),
+          );
+        });
+
+        it(`should be associative (${type1} + unknown + unknown)`, () => {
+          fc.assert(
+            fc.property(quantity1, fc.integer({ min:1, max: 100}), fc.integer({ min: 1, max: 100 }), otherUnit(), fc.integer({ min:1, max: 100}), fc.integer({ min: 1, max: 100 }), (a, factorA, countB, unitB, factorB, factorC) => {
+              const roundedA = Quantity.parse(a.toString())!;
+              const roundedB = Quantity.from(countB, unitB);
+              const conversions = `${roundedA.toString()}/${roundedB.toString()}`;
+
+              const termA = Quantity.parse(roundedA.toString(), conversions)!.multiply(factorA);
+              const termB = Quantity.parse(roundedB.toString(), conversions)!.multiply(factorB);
+              const termC = Quantity.parse(roundedB.toString(), conversions)!.multiply(factorC);
+
+              expect(termA.add(termB.add(termC))).toEqual(termA.add(termB).add(termC));
+            }),
+          );
+        });
+
+        it(`should have zero as an identity element (${type1} + unknown)`, () => {
+          fc.assert(
+            fc.property(quantity1, fc.integer({ min:1, max: 100}), fc.integer({ min: 1, max: 100 }), otherUnit(), (a, factorA, countB, unitB) => {
+              const roundedA = Quantity.parse(a.toString())!;
+              const roundedB = Quantity.from(countB, unitB);
+              const conversions = `${roundedA.toString()}/${roundedB.toString()}`;
+
+              const termA = Quantity.parse(roundedA.toString(), conversions)!.multiply(factorA);
+              const termB = Quantity.parse(roundedB.toString(), conversions)!.multiply(0);
+
+              expect(termA.add(termB)).toEqual(termA);
+            }),
+          );
+        });
+      });
+
+      it("should be commutative (unknown + unknown)", () => {
+        fc.assert(
+          fc.property(fc.array(fc.integer({ min: 1, max: 100 }), { minLength: 4, maxLength: 4 }), fc.uniqueArray(otherUnit(), { minLength: 2, maxLength: 2}), ([countA, factorA, countB, factorB], [unitA, unitB]) => {
+            const a = Quantity.from(countA, unitA);
+            const b = Quantity.from(countB, unitB);
+            const conversions = `${a.toString()}/${b.toString()}`;
+
+            const termA = Quantity.parse(a.toString(), conversions)!.multiply(factorA);
+            const termB = Quantity.parse(b.toString(), conversions)!.multiply(factorB);
+
+            expect(termA.add(termB)).toEqual(termB.add(termA).tryConvertTo(termA));
+          }),
+        );
+      });
+    });
+  });
 });
 
 function otherUnit() {
@@ -257,9 +552,14 @@ function otherUnit() {
       (str) =>
         (
           [
+            "volume",
             ...Volume.units(),
+            "mass",
             ...Mass.units(),
+            "length",
             ...Length.units(),
+            "area",
+            ...Area.units(),
           ] as readonly string[]
         ).indexOf(str) === -1,
     )

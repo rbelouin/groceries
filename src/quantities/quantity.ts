@@ -5,11 +5,7 @@ import { Area } from "./xarea";
 import { PhysicalQuantity } from "./types";
 
 export type QuantityType = (typeof Quantity.prototype.q)["type"];
-export type QuantityConversions = {
-  [K1 in QuantityType]?: {
-    [K2 in QuantityType]?: [Quantity, Quantity];
-  };
-};
+export type QuantityConversions = Map<String, Map<String, [Quantity, Quantity]>>;
 
 export class Quantity implements PhysicalQuantity {
   q:
@@ -42,7 +38,7 @@ export class Quantity implements PhysicalQuantity {
     conversions?: QuantityConversions,
   ) {
     this.q = q;
-    this.conversions = conversions || {};
+    this.conversions = conversions || new Map();
   }
 
   static parse(
@@ -62,17 +58,18 @@ export class Quantity implements PhysicalQuantity {
   }
 
   static parseConversions(conversions: string = ""): QuantityConversions {
-    return conversions.split("\n").reduce((acc, conversion) => {
-      if (!conversion) return acc;
+    const acc = new Map();
+
+    conversions.split("\n").forEach((conversion) => {
+      if (!conversion) return;
+
       const [quantity1, quantity2] = Quantity.parseConversion(conversion);
-      return {
-        ...acc,
-        [quantity1.q.type]: {
-          ...acc[quantity1.q.type],
-          [quantity2.q.type]: [quantity1, quantity2],
-        },
-      };
-    }, {} as QuantityConversions);
+      const innerMap = acc.get(quantity1.getUnitKey()) ?? new Map();
+      innerMap.set(quantity2.getUnitKey(), [quantity1, quantity2]);
+      acc.set(quantity1.getUnitKey(), innerMap);
+    });
+
+    return acc;
   }
 
   static parseConversion(conversion: string = ""): [Quantity, Quantity] {
@@ -152,60 +149,82 @@ export class Quantity implements PhysicalQuantity {
     );
   }
 
+  tryConvertTo(quantity: Quantity): Quantity {
+    const rule1 = this.conversions.get(this.getUnitKey())?.get(quantity.getUnitKey());
+    if (rule1) {
+      const [quantity1, quantity2] = rule1;
+      return new Quantity(quantity2.q, this.conversions).multiply(this.divide(quantity1));
+    }
+
+    const rule2 = this.conversions.get(quantity.getUnitKey())?.get(this.getUnitKey());
+    if (rule2) {
+      const [quantity2, quantity1] = rule2;
+      return new Quantity(quantity2.q, this.conversions).multiply(this.divide(quantity1));
+    }
+
+    return this;
+  }
+
+  private getUnitKey(): string {
+    return this.q.type === "unknown" ? this.q.unit : this.q.type;
+  }
+
   add(quantity?: Quantity): Quantity {
     if (!quantity) return this;
 
+    const convertedQuantity = quantity.tryConvertTo(this);
+
     switch (this.q.type) {
       case "volume":
-        if (quantity.q.type === "volume") {
+        if (convertedQuantity.q.type === "volume") {
           return new Quantity({
             type: "volume",
-            value: this.q.value.add(quantity.q.value),
-          });
+            value: this.q.value.add(convertedQuantity.q.value),
+          }, this.conversions);
         }
         break;
       case "mass":
-        if (quantity.q.type === "mass") {
+        if (convertedQuantity.q.type === "mass") {
           return new Quantity({
             type: "mass",
-            value: this.q.value.add(quantity.q.value),
-          });
+            value: this.q.value.add(convertedQuantity.q.value),
+          }, this.conversions);
         }
         break;
       case "length":
-        if (quantity.q.type === "length") {
+        if (convertedQuantity.q.type === "length") {
           return new Quantity({
             type: "length",
-            value: this.q.value.add(quantity.q.value),
-          });
+            value: this.q.value.add(convertedQuantity.q.value),
+          }, this.conversions);
         }
         break;
       case "area":
-        if (quantity.q.type === "area") {
+        if (convertedQuantity.q.type === "area") {
           return new Quantity({
             type: "area",
-            value: this.q.value.add(quantity.q.value),
-          });
+            value: this.q.value.add(convertedQuantity.q.value),
+          }, this.conversions);
         }
         break;
       case "unknown":
-        if (quantity.q.type === "unknown") {
-          if (this.q.unit !== quantity.q.unit) {
+        if (convertedQuantity.q.type === "unknown") {
+          if (this.q.unit !== convertedQuantity.q.unit) {
             throw new Error(
-              `Incompatible units: ${this.q.unit} vs. ${quantity.q.unit}`,
+              `Incompatible units: ${this.q.unit} vs. ${convertedQuantity.q.unit}`,
             );
           }
 
           return new Quantity({
             type: "unknown",
             unit: this.q.unit,
-            count: this.q.count + quantity.q.count,
-          });
+            count: this.q.count + convertedQuantity.q.count,
+          }, this.conversions);
         }
     }
 
     throw new Error(
-      `Incompatible types: ${this.q.type} vs. ${quantity.q.type}`,
+      `Incompatible types: ${this.q.type} vs. ${convertedQuantity.q.type}`,
     );
   }
 
@@ -215,28 +234,28 @@ export class Quantity implements PhysicalQuantity {
         return new Quantity({
           type: this.q.type,
           value: this.q.value.multiply(factor),
-        });
+        }, this.conversions);
       case "mass":
         return new Quantity({
           type: this.q.type,
           value: this.q.value.multiply(factor),
-        });
+        }, this.conversions);
       case "length":
         return new Quantity({
           type: this.q.type,
           value: this.q.value.multiply(factor),
-        });
+        }, this.conversions);
       case "area":
         return new Quantity({
           type: this.q.type,
           value: this.q.value.multiply(factor),
-        });
+        }, this.conversions);
       case "unknown":
         return new Quantity({
           type: this.q.type,
           unit: this.q.unit,
           count: this.q.count * factor,
-        });
+        }, this.conversions);
     }
   }
 
