@@ -542,6 +542,189 @@ describe("quantities/quantity", () => {
       });
     });
   });
+
+  describe("divide", () => {
+    describe("compatible types", () => {
+      [
+        ["volume", vol({ min: 1, max: 1000000 })] as const,
+        ["mass", mass({ min: 1, max: 1000000 })] as const,
+        ["length", len({ min: 1, max: 1000000 })] as const,
+        ["area", area({ min: 1, max: 1000000 })] as const,
+      ].forEach(([type, quantity]) => {
+        describe(`${type} ÷ ${type}`, () => {
+          it("should be the inverse of multiplication", () => {
+            fc.assert(
+              fc.property(quantity, fc.integer({ min: 1, max: 1000000 }), (a, n) => {
+                const dividend = Quantity.parse(a.multiply(n).toString())!;
+                const divisor = Quantity.parse(a.toString())!;
+                const quotient = dividend.divide(divisor);
+                expect(divisor.multiply(quotient)).toEqual(dividend);
+              }),
+            );
+          });
+        });
+      });
+
+      describe(`unknown ÷ unknown (same unit)`, () => {
+        it("should be the inverse of multiplication", () => {
+          fc.assert(
+            fc.property(fc.integer({ min: 1 }), fc.integer({ min: 1 }), (a, n) => {
+              const dividend = Quantity.from(a * n);
+              const divisor = Quantity.from(a);
+                const quotient = dividend.divide(divisor);
+                expect(divisor.multiply(quotient)).toEqual(dividend);
+            }),
+          );
+        });
+      });
+    });
+
+    describe("incompatible types with no conversion rules", () => {
+      [
+        ["volume", vol({ min: 1, max: 1000000 }), "mass", mass({ min: 1, max: 1000000 })] as const,
+        ["volume", vol({ min: 1, max: 1000000 }), "length", len({ min: 1, max: 1000000 })] as const,
+        ["volume", vol({ min: 1, max: 1000000 }), "area", area({ min: 1, max: 1000000 })] as const,
+        ["mass", mass({ min: 1, max: 1000000 }), "volume", vol({ min: 1, max: 1000000 })] as const,
+        ["mass", mass({ min: 1, max: 1000000 }), "length", len({ min: 1, max: 1000000 })] as const,
+        ["mass", mass({ min: 1, max: 1000000 }), "area", area({ min: 1, max: 1000000 })] as const,
+        ["length", len({ min: 1, max: 1000000 }), "volume", vol({ min: 1, max: 1000000 })] as const,
+        ["length", len({ min: 1, max: 1000000 }), "mass", mass({ min: 1, max: 1000000 })] as const,
+        ["length", len({ min: 1, max: 1000000 }), "area", area({ min: 1, max: 1000000 })] as const,
+        ["area", area({ min: 1, max: 1000000 }), "volume", vol({ min: 1, max: 1000000 })] as const,
+        ["area", area({ min: 1, max: 1000000 }), "mass", mass({ min: 1, max: 1000000 })] as const,
+        ["area", area({ min: 1, max: 1000000 }), "length", len({ min: 1, max: 1000000 })] as const,
+      ].forEach(([type1, quantity1, type2, quantity2]) => {
+        it(`should crash (${type1} ÷ ${type2})`, () => {
+          fc.assert(
+            fc.property(quantity1, quantity2, (a, b) => {
+              const dividend = Quantity.parse(a.toString())!;
+              const divisor = Quantity.parse(b.toString())!;
+              expect(() => dividend.divide(divisor)).toThrow(
+                `Incompatible types: ${type1} vs. ${type2}`,
+              );
+            }),
+          );
+        });
+      });
+
+      [
+        ["volume", vol({ min: 1, max: 1000000 })] as const,
+        ["mass", mass({ min: 1, max: 1000000 })] as const,
+        ["length", len({ min: 1, max: 1000000 })] as const,
+        ["area", area({ min: 1, max: 1000000 })] as const,
+      ].forEach(([type, quantity]) => {
+        it(`should crash (${type} ÷ unknown)`, () => {
+          fc.assert(
+            fc.property(quantity, fc.integer({ min: 1, max: 1000000 }), otherUnit(), (a, b, unit) => {
+              const dividend = Quantity.parse(a.toString())!;
+              const divisor = Quantity.from(b, unit);
+              expect(() => dividend.divide(divisor)).toThrow(
+                `Incompatible types: ${type} vs. unknown`,
+              );
+            }),
+          );
+        });
+
+        it(`should crash (unknown + ${type})`, () => {
+          fc.assert(
+            fc.property(fc.integer({ min: 1, max: 1000000 }), otherUnit(), quantity, (a, unit, b) => {
+              const dividend = Quantity.from(a, unit);
+              const divisor = Quantity.parse(b.toString())!;
+              expect(() => dividend.divide(divisor)).toThrow(
+                `Incompatible types: unknown vs. ${type}`,
+              );
+            }),
+          );
+        });
+      });
+
+      it("should crash (unknown of different units)", () => {
+        fc.assert(
+          fc.property(
+            fc.integer({ min: 1, max: 1000000 }),
+            fc.integer({ min: 1, max: 1000000 }),
+            fc.uniqueArray(otherUnit(), { minLength: 2, maxLength: 2 }),
+            (a, b, [unitA, unitB]) => {
+              const dividend = Quantity.from(a, unitA);
+              const divisor = Quantity.from(b, unitB);
+              expect(() => dividend.divide(divisor)).toThrow(
+                `Incompatible units: ${unitA} vs. ${unitB}`,
+              );
+            },
+          ),
+        );
+      });
+    });
+
+    describe("incompatible types with conversion rules", () => {
+      [
+        ["volume", vol({ min: 1, max: 1000000 }), "mass", mass({ min: 1, max: 1000000 })] as const,
+        ["volume", vol({ min: 1, max: 1000000 }), "length", len({ min: 1, max: 1000000 })] as const,
+        ["volume", vol({ min: 1, max: 1000000 }), "area", area({ min: 1, max: 1000000 })] as const,
+        ["mass", mass({ min: 1, max: 1000000 }), "volume", vol({ min: 1, max: 1000000 })] as const,
+        ["mass", mass({ min: 1, max: 1000000 }), "length", len({ min: 1, max: 1000000 })] as const,
+        ["mass", mass({ min: 1, max: 1000000 }), "area", area({ min: 1, max: 1000000 })] as const,
+        ["length", len({ min: 1, max: 1000000 }), "volume", vol({ min: 1, max: 1000000 })] as const,
+        ["length", len({ min: 1, max: 1000000 }), "mass", mass({ min: 1, max: 1000000 })] as const,
+        ["length", len({ min: 1, max: 1000000 }), "area", area({ min: 1, max: 1000000 })] as const,
+        ["area", area({ min: 1, max: 1000000 }), "volume", vol({ min: 1, max: 1000000 })] as const,
+        ["area", area({ min: 1, max: 1000000 }), "mass", mass({ min: 1, max: 1000000 })] as const,
+        ["area", area({ min: 1, max: 1000000 }), "length", len({ min: 1, max: 1000000 })] as const,
+      ].forEach(([type1, quantity1, type2, quantity2]) => {
+        it(`should be the inverse of multiplication (${type1} ÷ ${type2})`, () => {
+          fc.assert(
+            fc.property(quantity1, fc.integer({ min:1, max: 100}), quantity2, fc.integer({ min:1, max: 100}), (a, factorA, b, factorB) => {
+              const roundedA = Quantity.parse(a.toString())!;
+              const roundedB = Quantity.parse(b.toString())!;
+              const conversions = `${roundedA.toString()}/${roundedB.toString()}`;
+
+              const dividend = Quantity.parse(a.toString(), conversions)!.multiply(factorA);
+              const divisor = Quantity.parse(b.toString(), conversions)!.multiply(factorB);
+
+              expect(dividend.divide(divisor)).toEqual(factorA / factorB);
+            }),
+          );
+        });
+      });
+
+      [
+        ["volume", vol({ min: 1, max: 1000000 })] as const,
+        ["mass", mass({ min: 1, max: 1000000 })] as const,
+        ["length", len({ min: 1, max: 1000000 })] as const,
+        ["area", area({ min: 1, max: 1000000 })] as const,
+      ].forEach(([type1, quantity1]) => {
+        it(`should be the inverse of multiplication (${type1} + unknown)`, () => {
+          fc.assert(
+            fc.property(quantity1, fc.integer({ min:1, max: 100}), fc.integer({ min: 1, max: 100 }), otherUnit(), fc.integer({ min:1, max: 100}), (a, factorA, countB, unitB, factorB) => {
+              const roundedA = Quantity.parse(a.toString())!;
+              const roundedB = Quantity.from(countB, unitB);
+              const conversions = `${roundedA.toString()}/${roundedB.toString()}`;
+
+              const dividend = Quantity.parse(roundedA.toString(), conversions)!.multiply(factorA);
+              const divisor = Quantity.parse(roundedB.toString(), conversions)!.multiply(factorB);
+
+              expect(dividend.divide(divisor)).toEqual(factorA / factorB);
+            }),
+          );
+        });
+      });
+
+      it("should be the inverse of multiplication (unknown + unknown)", () => {
+        fc.assert(
+          fc.property(fc.array(fc.integer({ min: 1, max: 100 }), { minLength: 4, maxLength: 4 }), fc.uniqueArray(otherUnit(), { minLength: 2, maxLength: 2}), ([countA, factorA, countB, factorB], [unitA, unitB]) => {
+            const a = Quantity.from(countA, unitA);
+            const b = Quantity.from(countB, unitB);
+            const conversions = `${a.toString()}/${b.toString()}`;
+
+            const dividend = Quantity.parse(a.toString(), conversions)!.multiply(factorA);
+            const divisor = Quantity.parse(b.toString(), conversions)!.multiply(factorB);
+
+            expect(dividend.divide(divisor)).toEqual(factorA / factorB);
+          }),
+        );
+      });
+    });
+  });
 });
 
 function otherUnit() {

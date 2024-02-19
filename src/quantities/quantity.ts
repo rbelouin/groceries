@@ -260,41 +260,43 @@ export class Quantity implements PhysicalQuantity {
   }
 
   divide(quantity: Quantity): number {
+    const convertedQuantity = quantity.tryConvertTo(this);
+
     switch (this.q.type) {
       case "volume":
-        if (quantity.q.type === "volume") {
-          return this.q.value.divide(quantity.q.value);
+        if (convertedQuantity.q.type === "volume") {
+          return this.q.value.divide(convertedQuantity.q.value);
         }
         break;
       case "mass":
-        if (quantity.q.type === "mass") {
-          return this.q.value.divide(quantity.q.value);
+        if (convertedQuantity.q.type === "mass") {
+          return this.q.value.divide(convertedQuantity.q.value);
         }
         break;
       case "length":
-        if (quantity.q.type === "length") {
-          return this.q.value.divide(quantity.q.value);
+        if (convertedQuantity.q.type === "length") {
+          return this.q.value.divide(convertedQuantity.q.value);
         }
         break;
       case "area":
-        if (quantity.q.type === "area") {
-          return this.q.value.divide(quantity.q.value);
+        if (convertedQuantity.q.type === "area") {
+          return this.q.value.divide(convertedQuantity.q.value);
         }
         break;
       case "unknown":
-        if (quantity.q.type === "unknown") {
-          if (this.q.unit !== quantity.q.unit) {
+        if (convertedQuantity.q.type === "unknown") {
+          if (this.q.unit !== convertedQuantity.q.unit) {
             throw new Error(
-              `Incompatible units: ${this.q.unit} vs. ${quantity.q.unit}`,
+              `Incompatible units: ${this.q.unit} vs. ${convertedQuantity.q.unit}`,
             );
           }
 
-          return this.q.count / quantity.q.count;
+          return this.q.count / convertedQuantity.q.count;
         }
     }
 
     throw new Error(
-      `Incompatible types: ${this.q.type} vs. ${quantity.q.type}`,
+      `Incompatible types: ${this.q.type} vs. ${convertedQuantity.q.type}`,
     );
   }
 
