@@ -308,7 +308,7 @@ export class Quantity implements PhysicalQuantity {
       case "area":
         return this.q.value.toString();
       case "unknown":
-        return `${this.q.count} ${this.q.unit}`;
+        return this.q.unit === "" ? this.q.count.toString() : `${this.q.count} ${this.q.unit}`;
     }
   }
 }

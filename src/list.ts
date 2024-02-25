@@ -1,5 +1,5 @@
 import { getAllRecipesByName, resizeRecipe, Recipe } from "./recipe";
-import { MixedQuantities } from "./quantities";
+import { MixedQuantities, Quantity } from "./quantities";
 import { getStoreArticles, StoreArticle } from "./stores";
 import { serializeTotalPrice, Price, getTotalPriceForQuantity } from "./price";
 import { GENERATED_LIST_SHEET_ARTICLE_RANGE, GENERATED_LIST_SHEET_NAME, GENERATED_LIST_SHEET_PRICE_RANGE, GENERATED_LIST_SHEET_TOTAL_PRICE_RANGE, LIST_SHEET_ARTICLE_RANGE, LIST_SHEET_NAME } from "./init";
@@ -7,7 +7,7 @@ import { GENERATED_LIST_SHEET_ARTICLE_RANGE, GENERATED_LIST_SHEET_NAME, GENERATE
 export type List = ListItem[];
 export type ListItem = {
   name: string;
-  quantity: MixedQuantities;
+  quantity?: Quantity;
 }
 
 export type GeneratedList = Record<ListItem["name"], GeneratedListItem>;
@@ -27,17 +27,17 @@ export function calculateAndUpdateGeneratedList(spreadsheet: GoogleAppsScript.Sp
 
 export function readList(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet): List {
   const range = spreadsheet.getRange(`${LIST_SHEET_NAME}!${LIST_SHEET_ARTICLE_RANGE}`);
-  return range.getValues().flatMap(([name, quantity]) => name ? [{ name, quantity: MixedQuantities.parse(quantity) }] : []);
+  return range.getValues().flatMap(([name, quantity]) => name ? [{ name, quantity: Quantity.parse(quantity) }] : []);
 }
 
 export function calculateGeneratedList(recipesByName: Record<string, Recipe>, list: List): GeneratedList {
   const generatedList = list
     .flatMap(item => recipesByName[item.name]
-      ? resizeRecipe(recipesByName[item.name], item.quantity.toString() as `${number}p`).ingredients
+      ? resizeRecipe(recipesByName[item.name], (item.quantity?.toString() || recipesByName[item.name].people) as `${number}p`).ingredients
       : [item])
     .reduce((acc, item) => ({
       ...acc,
-      [item.name]: item.quantity.add(acc[item.name]),
+      [item.name]: MixedQuantities.parse(item.quantity?.toString()).add(acc[item.name]),
     }), {} as Record<string, MixedQuantities>);
 
   return Object.fromEntries(Object.entries(generatedList)

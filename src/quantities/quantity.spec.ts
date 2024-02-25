@@ -224,8 +224,18 @@ describe("quantities/quantity", () => {
     ].forEach(([type, quantity]) => {
       it(`should be able to parse a ${type} -> unknown conversion`, () => {
         fc.assert(
-          fc.property(quantity, fc.nat(), otherUnit(), (a, n, unit) => {
+          fc.property(quantity, fc.nat(), otherUnit().filter(unit => unit !== ""), (a, n, unit) => {
             const conversion = `${a.toString()}/${n} ${unit}`;
+            const [quantity1, quantity2] = Quantity.parseConversion(conversion);
+            expect(`${quantity1.toString()}/${quantity2.toString()}`).toEqual(
+              conversion,
+            );
+          }),
+        );
+
+        fc.assert(
+          fc.property(quantity, fc.nat(), (a, n) => {
+            const conversion = `${a.toString()}/${n}`;
             const [quantity1, quantity2] = Quantity.parseConversion(conversion);
             expect(`${quantity1.toString()}/${quantity2.toString()}`).toEqual(
               conversion,
@@ -236,8 +246,18 @@ describe("quantities/quantity", () => {
 
       it(`should be able to parse an unknown -> ${type} conversion`, () => {
         fc.assert(
-          fc.property(fc.nat(), otherUnit(), quantity, (n, unit, b) => {
+          fc.property(fc.nat(), otherUnit().filter(unit => unit !== ""), quantity, (n, unit, b) => {
             const conversion = `${n} ${unit}/${b.toString()}`;
+            const [quantity1, quantity2] = Quantity.parseConversion(conversion);
+            expect(`${quantity1.toString()}/${quantity2.toString()}`).toEqual(
+              conversion,
+            );
+          }),
+        );
+
+        fc.assert(
+          fc.property(fc.nat(), quantity, (n, b) => {
+            const conversion = `${n}/${b.toString()}`;
             const [quantity1, quantity2] = Quantity.parseConversion(conversion);
             expect(`${quantity1.toString()}/${quantity2.toString()}`).toEqual(
               conversion,

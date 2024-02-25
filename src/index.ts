@@ -32,7 +32,7 @@ function listIncompleteIngredients(): string {
       return [`${ingredient.name} does not have a price in the selected store`];
     }
 
-    const quantity = Quantity.parse(ingredient.quantity.toString());
+    const quantity = Quantity.parse(ingredient.quantity?.toString());
     if (!quantity) {
       return [];
     }

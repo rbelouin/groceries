@@ -1,5 +1,5 @@
 import { readList, calculateGeneratedList, updateGeneratedList, GeneratedList } from "./list";
-import { MixedQuantities } from "./quantities";
+import { Quantity } from "./quantities";
 import { type Recipe } from "./recipe";
 
 jest.mock("./init", () => {
@@ -34,9 +34,9 @@ describe("list", () => {
       } as Partial<GoogleAppsScript.Spreadsheet.Spreadsheet>;
 
       expect(readList(spreadsheet as any)).toStrictEqual([
-        { name: "Pain", quantity: MixedQuantities.parse("300g") },
-        { name: "Eau", quantity: MixedQuantities.parse("") },
-        { name: "Brioche", quantity: MixedQuantities.parse("1kg") },
+        { name: "Pain", quantity: Quantity.parse("300g") },
+        { name: "Eau", quantity: Quantity.parse("") },
+        { name: "Brioche", quantity: Quantity.parse("1kg") },
       ]);
     });
   });
@@ -48,20 +48,20 @@ describe("list", () => {
         people: "4p",
         ingredients: [{
           name: "Pain",
-          quantity: MixedQuantities.parse("100g"),
+          quantity: Quantity.parse("100g"),
         }, {
           name: "Confiture",
-          quantity: MixedQuantities.parse("60ml"),
+          quantity: Quantity.parse("60ml"),
         }],
       },
     } as Record<string, Recipe>;
 
     const list = [
-      { name: "Pain", quantity: MixedQuantities.parse("300g") },
-      { name: "Tartines", quantity: MixedQuantities.parse("2p") },
-      { name: "Eau", quantity: MixedQuantities.parse("") },
-      { name: "Brioche", quantity: MixedQuantities.parse("1kg") },
-      { name: "Pain", quantity: MixedQuantities.parse("600g") },
+      { name: "Pain", quantity: Quantity.parse("300g") },
+      { name: "Tartines", quantity: Quantity.parse("2p") },
+      { name: "Eau", quantity: Quantity.parse("") },
+      { name: "Brioche", quantity: Quantity.parse("1kg") },
+      { name: "Pain", quantity: Quantity.parse("600g") },
     ];
 
     it("should expand recipes and deduplicate articles", () => {

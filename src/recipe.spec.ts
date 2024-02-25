@@ -1,4 +1,4 @@
-import { MixedQuantities } from "./quantities";
+import { Quantity } from "./quantities";
 import { formatRecipes, Recipe, resizeRecipe, sortRecipes } from "./recipe";
 
 const RECIPE: Recipe = {
@@ -6,13 +6,13 @@ const RECIPE: Recipe = {
   people: "6p",
   ingredients: [{
     name: "Cheese",
-    quantity: MixedQuantities.parse("300g"),
+    quantity: Quantity.parse("300g"),
   }, {
     name: "Crème Fraîche",
-    quantity: MixedQuantities.parse("2 c-à-s"),
+    quantity: Quantity.parse("2 c-à-s"),
   }, {
     name: "Onions",
-    quantity: MixedQuantities.parse(1),
+    quantity: Quantity.parse(1),
   }],
 };
 
@@ -28,13 +28,13 @@ describe("recipe", () => {
         people: "12p",
         ingredients: [{
           name: "Cheese",
-          quantity: MixedQuantities.parse("600g"),
+          quantity: Quantity.parse("600g"),
         }, {
           name: "Crème Fraîche",
-          quantity: MixedQuantities.parse("4 c-à-s"),
+          quantity: Quantity.parse("4 c-à-s"),
         }, {
           name: "Onions",
-          quantity: MixedQuantities.parse(2),
+          quantity: Quantity.parse(2),
         }],
       });
     });
@@ -45,13 +45,13 @@ describe("recipe", () => {
         people: "3p",
         ingredients: [{
           name: "Cheese",
-          quantity: MixedQuantities.parse("150g"),
+          quantity: Quantity.parse("150g"),
         }, {
           name: "Crème Fraîche",
-          quantity: MixedQuantities.parse("1 c-à-s"),
+          quantity: Quantity.parse("1 c-à-s"),
         }, {
           name: "Onions",
-          quantity: MixedQuantities.parse(0.5),
+          quantity: Quantity.parse(0.5),
         }],
       });
     });
