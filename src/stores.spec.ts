@@ -1,5 +1,5 @@
 import { getStoreNames, getStoreArticles } from "./stores";
-import { MixedQuantities } from "./quantities";
+import { Quantity } from "./quantities";
 
 jest.mock("./init", () => {
   const originalModule = jest.requireActual("./init");
@@ -189,7 +189,7 @@ describe("stores", () => {
           price: {
             value: 4,
             currency: "€",
-            quantity: MixedQuantities.from(1),
+            quantity: Quantity.from(1),
           },
         },
         "Fromage": {
@@ -198,7 +198,7 @@ describe("stores", () => {
           price: {
             value: 5,
             currency: "€",
-            quantity: MixedQuantities.from(1),
+            quantity: Quantity.from(1),
           },
         },
       });
