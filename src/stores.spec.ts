@@ -160,7 +160,7 @@ describe("stores", () => {
 
           if (range === "A3:Y") {
             return createRangeFromValues([
-              ["Yaourt", "01. Produits Laitiers", "3€", "04. Produits Laitiers", "4€", "", ""],
+              [{ value: "Yaourt", note: "1.03kg/1l" }, "01. Produits Laitiers", "3€", "04. Produits Laitiers", "4€", "", ""],
               ["Lait", "01. Produits Laitiers", "3€", "", "", "", ""],
               ["Fromage", "", "", "04. Produits Laitiers", "5€", "", ""],
             ]);
@@ -189,7 +189,11 @@ describe("stores", () => {
           price: {
             value: 4,
             currency: "€",
-            quantity: Quantity.from(1),
+            quantity: Quantity.from(1, "", new Map([
+              ["mass", new Map([
+                ["volume", [Quantity.from(1.03, "kg"), Quantity.from(1, "l")]],
+              ])],
+            ])),
           },
         },
         "Fromage": {
@@ -209,13 +213,22 @@ describe("stores", () => {
 });
 
 function createRangeFromValues(initialValues: any[][]): GoogleAppsScript.Spreadsheet.Range {
-  let values = initialValues;
+  let values = initialValues.map(row => row.map(cell => {
+    return typeof cell.value === "string" && typeof cell.note === "string" ? cell.value : cell;
+  }));
+
+  let notes = initialValues.map(row => row.map(cell => {
+    return typeof cell.value === "string" && typeof cell.note === "string" ? cell.note : "";
+  }));
 
   const range = {
     getNumRows: () => values.length,
     getValues: () => values,
+    getNotes: () => notes,
     getValue: () => values[0][0],
+    getNote: () => notes[0][0],
     setValues: (newValues: any[][]) => { values = newValues },
+    setNotes: (newNotes: any[][]) => { notes = newNotes },
   } as Partial<GoogleAppsScript.Spreadsheet.Range>;
 
   return range as any;

@@ -28,10 +28,13 @@ export function getStoreArticles(spreadsheet: GoogleAppsScript.Spreadsheet.Sprea
   const storeIndex = 1 + 2 * getStoreNames(spreadsheet).findIndex(name => name === storeName);
   if (storeIndex < 0) return {};
 
-  return Object.fromEntries(storeSheet.getRange("A3:Y").getValues().flatMap(row => {
+  const range = storeSheet.getRange("A3:Y");
+  const notes = range.getNotes();
+
+  return Object.fromEntries(range.getValues().flatMap((row, rowIndex) => {
     const name: string = row[0];
     const department: string = row[storeIndex];
-    const price = row[storeIndex + 1] ? parsePrice(row[storeIndex + 1]) : undefined;
+    const price = row[storeIndex + 1] ? parsePrice(row[storeIndex + 1], notes[rowIndex][0]) : undefined;
 
     if (name && department) return [[name, {
       name,
