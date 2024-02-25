@@ -105,30 +105,6 @@ describe("price", () => {
   describe("getTotalPriceForQuantity", () => {
     [
       {
-        priceQuantity: Quantity.from(4),
-        quantity: MixedQuantities.from(4, "ml"),
-      },
-      {
-        priceQuantity: Quantity.from(5, "ml"),
-        quantity: MixedQuantities.from(5, "kg"),
-      },
-      {
-        priceQuantity: Quantity.from(6, "mg"),
-        quantity: MixedQuantities.from(6),
-      },
-    ].forEach(({ priceQuantity, quantity }) => {
-      it(`should return "undefined" if quantities are not of the same dimension. e.g. ${priceQuantity} != ${quantity}`, () => {
-        expect(
-          getTotalPriceForQuantity(
-            { value: 4, currency: "kr", quantity: priceQuantity },
-            quantity,
-          ),
-        ).toBeUndefined();
-      });
-    });
-
-    [
-      {
         price: {
           value: 4,
           currency: "kr",
@@ -147,10 +123,73 @@ describe("price", () => {
         expectedPrice: { value: 16.67, currency: "€" },
       },
     ].forEach(({ price, quantity, expectedPrice }, index) => {
-      it(`should return the total price otherwise. #${index}`, () => {
+      it(`should return the total price for compatible types. #${index}`, () => {
         expect(getTotalPriceForQuantity(price, quantity)).toEqual(
           expectedPrice,
         );
+      });
+    });
+
+    [
+      {
+        price: {
+          value: 4,
+          currency: "kr",
+          quantity: Quantity.parse("1", "2ml/1")!,
+        },
+        quantity: MixedQuantities.from(4, "ml"),
+        expectedPrice: { value: 8, currency: "kr" },
+      },
+      {
+        price: {
+          value: 5,
+          currency: "€",
+          quantity: Quantity.parse("1l", "200g/1l")!,
+        },
+        quantity: MixedQuantities.from(5, "kg"),
+        expectedPrice: { value: 125, currency: "€" },
+      },
+      {
+        price: {
+          value: 10,
+          currency: "$",
+          quantity: Quantity.parse("50cl", "1cl/10g")!,
+        },
+        quantity: MixedQuantities.parse("1l|1kg"),
+        expectedPrice: { value: 40, currency: "$" },
+      },
+    ].forEach(({ price, quantity, expectedPrice }) => {
+      it(`should return the total price for incompatible types with conversion rule. e.g. ${price.quantity} != ${quantity}`, () => {
+        expect(
+          getTotalPriceForQuantity(
+            price,
+            quantity,
+          ),
+        ).toEqual(expectedPrice);
+      });
+    });
+
+    [
+      {
+        priceQuantity: Quantity.from(4),
+        quantity: MixedQuantities.from(4, "ml"),
+      },
+      {
+        priceQuantity: Quantity.from(5, "ml"),
+        quantity: MixedQuantities.from(5, "kg"),
+      },
+      {
+        priceQuantity: Quantity.from(6, "mg"),
+        quantity: MixedQuantities.from(6),
+      },
+    ].forEach(({ priceQuantity, quantity }) => {
+      it(`should return "undefined" otherwise. e.g. ${priceQuantity} != ${quantity}`, () => {
+        expect(
+          getTotalPriceForQuantity(
+            { value: 4, currency: "kr", quantity: priceQuantity },
+            quantity,
+          ),
+        ).toBeUndefined();
       });
     });
   });

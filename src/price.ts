@@ -31,10 +31,15 @@ export function parsePrice(str: string, conversions: string = ""): Price {
   return { value, currency, quantity };
 }
 
-export function getTotalPriceForQuantity(price: Price, quantity: MixedQuantities): TotalPrice | undefined {
+export function getTotalPriceForQuantity(price: Price, mixedQuantities: MixedQuantities): TotalPrice | undefined {
   try {
+    const prices = mixedQuantities.quantities().map(quantity => {
+      const quantityWithConversion = new Quantity(quantity.q, price.quantity.conversions);
+      return quantityWithConversion.divide(price.quantity) * price.value;
+    });
+
     return {
-      value: Math.round(quantity.divide(MixedQuantities.parse(price.quantity.toString())!) * price.value * 100) / 100,
+      value: Math.round(prices.reduce((acc, item) => acc + item, 0) * 100) / 100,
       currency: price.currency,
     };
   } catch (err) {
