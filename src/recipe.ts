@@ -1,4 +1,5 @@
 import { RECIPE_SHEET_NAME, RECIPE_SHEET_RANGE } from "./init";
+import { Quantity } from "./quantities";
 
 export type Recipe = {
   name: string;
@@ -8,10 +9,8 @@ export type Recipe = {
 
 export type Ingredient = {
   name: string;
-  quantity: Quantity;
+  quantity?: Quantity;
 };
-
-export type Quantity = number | `${number} ${string}` | `${number}${string}` | "";
 
 export function sortAndFormatRecipes() {
   const range = getRange();
@@ -52,7 +51,7 @@ function readRecipes(range: GoogleAppsScript.Spreadsheet.Range): Recipe[] {
     } else {
       recipes[recipes.length - 1].ingredients.push({
         name: row[1],
-        quantity: row[2],
+        quantity: Quantity.parse(row[2]),
       });
     }
   }
@@ -63,7 +62,7 @@ function readRecipes(range: GoogleAppsScript.Spreadsheet.Range): Recipe[] {
 function writeRecipes(range: GoogleAppsScript.Spreadsheet.Range, recipes: Recipe[]) {
   const values = recipes.flatMap(recipe => ([
     [recipe.name, '', recipe.people],
-    ...recipe.ingredients.map(ingredient => (['', ingredient.name, ingredient.quantity]))
+    ...recipe.ingredients.map(ingredient => (['', ingredient.name, ingredient.quantity?.toString() || '']))
   ]));
 
   const blank = new Array(range.getNumRows() - values.length).fill(['', '', '']);
@@ -82,28 +81,11 @@ export function resizeRecipe(recipe: Recipe, people: `${number}p`): Recipe {
   return {
     ...recipe,
     people,
-    ingredients: recipe.ingredients.map(ingredient => resizeIngredient(ingredient, ratio)),
+    ingredients: recipe.ingredients.map(ingredient => ({
+      ...ingredient,
+      quantity: ingredient.quantity?.multiply(ratio),
+    })),
   };
-}
-
-function resizeIngredient(ingredient: Ingredient, ratio: number): Ingredient {
-  if (typeof ingredient.quantity === "number") {
-    return {
-      ...ingredient,
-      quantity: ingredient.quantity * ratio,
-    };
-  }
-
-  if (typeof ingredient.quantity === "string") {
-    return {
-      ...ingredient,
-      quantity: ingredient.quantity.replace(/^([0-9,.]+)/, (_, num) => {
-        return (Math.round(parseFloat(num) * ratio * 100) / 100).toString();
-      }) as Quantity,
-    };
-  }
-
-  throw new Error("Unsupported quantity");
 }
 
 export function formatRecipes(range: GoogleAppsScript.Spreadsheet.Range) {

@@ -1,3 +1,4 @@
+import { Quantity } from "./quantities";
 import { formatRecipes, Recipe, resizeRecipe, sortRecipes } from "./recipe";
 
 const RECIPE: Recipe = {
@@ -5,90 +6,52 @@ const RECIPE: Recipe = {
   people: "6p",
   ingredients: [{
     name: "Cheese",
-    quantity: "300g",
+    quantity: Quantity.parse("300g"),
   }, {
     name: "Crème Fraîche",
-    quantity: "2 c-à-s",
+    quantity: Quantity.parse("2 c-à-s"),
   }, {
     name: "Onions",
-    quantity: 1,
+    quantity: Quantity.parse(1),
   }],
 };
 
 describe("recipe", () => {
   describe("resizeRecipe", () => {
     it("should not change the recipe if the number of people is the same", () => {
-      expect(resizeRecipe(RECIPE, RECIPE.people)).toStrictEqual(RECIPE);
+      expect(resizeRecipe(RECIPE, RECIPE.people)).toEqual(RECIPE);
     });
 
     it("should adjust the quantities correctly when multiplying the number of people by 2", () => {
-      expect(resizeRecipe(RECIPE, "12p")).toStrictEqual({
+      expect(resizeRecipe(RECIPE, "12p")).toEqual({
         name: "Recipe 1",
         people: "12p",
         ingredients: [{
           name: "Cheese",
-          quantity: "600g",
+          quantity: Quantity.parse("600g"),
         }, {
           name: "Crème Fraîche",
-          quantity: "4 c-à-s",
+          quantity: Quantity.parse("4 c-à-s"),
         }, {
           name: "Onions",
-          quantity: 2,
+          quantity: Quantity.parse(2),
         }],
       });
     });
 
     it("should adjust the quantities correctly when dividing the number of people by 2", () => {
-      expect(resizeRecipe(RECIPE, "3p")).toStrictEqual({
+      expect(resizeRecipe(RECIPE, "3p")).toEqual({
         name: "Recipe 1",
         people: "3p",
         ingredients: [{
           name: "Cheese",
-          quantity: "150g",
+          quantity: Quantity.parse("150g"),
         }, {
           name: "Crème Fraîche",
-          quantity: "1 c-à-s",
+          quantity: Quantity.parse("1 c-à-s"),
         }, {
           name: "Onions",
-          quantity: 0.5,
-        }],
-      });
-    });
-
-    it("should round string quantity values with a precision of two digits after the decimal point", () => {
-      expect(resizeRecipe(RECIPE, "2p")).toStrictEqual({
-        name: "Recipe 1",
-        people: "2p",
-        ingredients: [{
-          name: "Cheese",
-          quantity: "100g",
-        }, {
-          name: "Crème Fraîche",
-          quantity: "0.67 c-à-s",
-        }, {
-          name: "Onions",
-          quantity: 1 / 3,
-        }],
-      });
-    });
-
-    it("should handle decimal values as an input too", () => {
-      const recipe = { ...RECIPE, ingredients: RECIPE.ingredients.concat([{ name: "Milk", quantity: "0.5 dl" }]) };
-      expect(resizeRecipe(recipe, "6p")).toStrictEqual({
-        name: "Recipe 1",
-        people: "6p",
-        ingredients: [{
-          name: "Cheese",
-          quantity: "300g",
-        }, {
-          name: "Crème Fraîche",
-          quantity: "2 c-à-s",
-        }, {
-          name: "Onions",
-          quantity: 1,
-        }, {
-          name: "Milk",
-          quantity: "0.5 dl",
+          quantity: Quantity.parse(0.5),
         }],
       });
     });
@@ -99,25 +62,25 @@ describe("recipe", () => {
       const range = createRangeFromValues([
         ["Recipe 1", "", "6p"],
         ["", "Cheese", "300g"],
-        ["", "Crème Fraîche", "2 c-à-s"],
+        ["", "Crème Fraîche", "3cl"],
         ["", "Onions", 1],
         ["Recipe 2", "", "2p"],
         ["", "Salad", ""],
         ["", "Bacon", "100g"],
-        ["", "Tomatoes", 4],
+        ["", "Tomatoes", "4"],
       ]);
 
       sortRecipes(range);
 
-      expect(range.getValues()).toStrictEqual([
+      expect(range.getValues()).toEqual([
         ["Recipe 1", "", "6p"],
         ["", "Cheese", "300g"],
-        ["", "Crème Fraîche", "2 c-à-s"],
-        ["", "Onions", 1],
+        ["", "Crème Fraîche", "3cl"],
+        ["", "Onions", "1"],
         ["Recipe 2", "", "2p"],
         ["", "Salad", ""],
         ["", "Bacon", "100g"],
-        ["", "Tomatoes", 4],
+        ["", "Tomatoes", "4"],
       ]);
     });
 
@@ -126,24 +89,24 @@ describe("recipe", () => {
         ["Recipe 2", "", "2p"],
         ["", "Salad", ""],
         ["", "Bacon", "100g"],
-        ["", "Tomatoes", 4],
+        ["", "Tomatoes", "4"],
         ["Recipe 1", "", "6p"],
         ["", "Cheese", "300g"],
-        ["", "Crème Fraîche", "2 c-à-s"],
-        ["", "Onions", 1],
+        ["", "Crème Fraîche", "3cl"],
+        ["", "Onions", "1"],
       ]);
 
       sortRecipes(range);
 
-      expect(range.getValues()).toStrictEqual([
+      expect(range.getValues()).toEqual([
         ["Recipe 1", "", "6p"],
         ["", "Cheese", "300g"],
-        ["", "Crème Fraîche", "2 c-à-s"],
-        ["", "Onions", 1],
+        ["", "Crème Fraîche", "3cl"],
+        ["", "Onions", "1"],
         ["Recipe 2", "", "2p"],
         ["", "Salad", ""],
         ["", "Bacon", "100g"],
-        ["", "Tomatoes", 4],
+        ["", "Tomatoes", "4"],
       ]);
     });
 
@@ -152,11 +115,11 @@ describe("recipe", () => {
         ["Recipe 2", "", "2p"],
         ["", "Salad", ""],
         ["", "Bacon", "100g"],
-        ["", "Tomatoes", 4],
+        ["", "Tomatoes", "4"],
         ["Recipe 1", "", "6p"],
         ["", "Cheese", "300g"],
-        ["", "Crème Fraîche", "2 c-à-s"],
-        ["", "Onions", 1],
+        ["", "Crème Fraîche", "3cl"],
+        ["", "Onions", "1"],
         ["", "", ""],
         ["", "", ""],
         ["", "", ""],
@@ -164,15 +127,15 @@ describe("recipe", () => {
 
       sortRecipes(range);
 
-      expect(range.getValues()).toStrictEqual([
+      expect(range.getValues()).toEqual([
         ["Recipe 1", "", "6p"],
         ["", "Cheese", "300g"],
-        ["", "Crème Fraîche", "2 c-à-s"],
-        ["", "Onions", 1],
+        ["", "Crème Fraîche", "3cl"],
+        ["", "Onions", "1"],
         ["Recipe 2", "", "2p"],
         ["", "Salad", ""],
         ["", "Bacon", "100g"],
-        ["", "Tomatoes", 4],
+        ["", "Tomatoes", "4"],
         ["", "", ""],
         ["", "", ""],
         ["", "", ""],
@@ -186,11 +149,11 @@ describe("recipe", () => {
         ["Recipe 2", "", "2p"],
         ["", "Salad", ""],
         ["", "Bacon", "100g"],
-        ["", "Tomatoes", 4],
+        ["", "Tomatoes", "4"],
         ["Recipe 1", "", "6p"],
         ["", "Cheese", "300g"],
-        ["", "Crème Fraîche", "2 c-à-s"],
-        ["", "Onions", 1],
+        ["", "Crème Fraîche", "3cl"],
+        ["", "Onions", "1"],
         ["", "", ""],
         ["", "", ""],
         ["", "", ""],

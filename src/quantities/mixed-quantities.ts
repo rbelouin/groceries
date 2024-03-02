@@ -3,6 +3,7 @@ import { Mass } from "./mass";
 import { Volume } from "./volume";
 import { Length } from "./length";
 import { Area } from "./xarea";
+import { Quantity } from "./quantity";
 
 export class MixedQuantities implements PhysicalQuantity {
 
@@ -59,7 +60,7 @@ export class MixedQuantities implements PhysicalQuantity {
     }
 
     const trimmedUnit = unit.trim();
-    if (trimmedUnit !== "") {
+    if (["", "p"].indexOf(trimmedUnit) < 0) {
       console.warn(`Unrecognized unit: ${trimmedUnit}`);
     }
 
@@ -133,6 +134,19 @@ export class MixedQuantities implements PhysicalQuantity {
     return Object.keys(this.inventory)
       .filter((key) => this.inventory[key])
       .flatMap((key) => key === "unknown" ? Array.from(this.inventory.unknown!.keys()) : [key]);
+  }
+
+  quantities(): Quantity[] {
+    const known = [
+      this.inventory.volume && Quantity.parse(this.inventory.volume.toString()),
+      this.inventory.mass && Quantity.parse(this.inventory.mass.toString()),
+      this.inventory.length && Quantity.parse(this.inventory.length.toString()),
+      this.inventory.area && Quantity.parse(this.inventory.area.toString()),
+    ].filter(quantity => quantity !== undefined) as Quantity[];
+
+    return known.concat(this.inventory.unknown
+      ? Array.from(this.inventory.unknown.entries()).map(([unit, count]) => Quantity.from(count, unit))
+      : []);
   }
 
   toString(): string {

@@ -1,9 +1,9 @@
-import { MixedQuantities } from "./quantities";
+import { MixedQuantities, Quantity } from "./quantities";
 
 export type Price = {
   value: number;
   currency: string;
-  quantity: MixedQuantities;
+  quantity: Quantity;
 };
 
 export type TotalPrice = {
@@ -11,7 +11,7 @@ export type TotalPrice = {
   currency: string;
 };
 
-export function parsePrice(str: string): Price {
+export function parsePrice(str: string, conversions: string = ""): Price {
   const result = str.match(/^([0-9.]+)([^0-9\/]+)(\/(.*))?$/);
   if (result === null) {
     throw new Error(`Invalid price: ${str}`);
@@ -21,20 +21,25 @@ export function parsePrice(str: string): Price {
   const value = parseFloat(valueString);
 
   const quantity = quantityString
-    ? MixedQuantities.parse((/^[0-9]/).test(quantityString) ? quantityString : `1${quantityString}`)
-    : MixedQuantities.from(1);
+    ? Quantity.parse((/^[0-9]/).test(quantityString) ? quantityString : `1${quantityString}`, conversions)
+    : Quantity.parse("1", conversions);
 
-  if (typeof quantity === "string") {
+  if (typeof quantity === "undefined") {
     throw new Error(`Invalid quantity: ${quantityString}`);
   }
 
   return { value, currency, quantity };
 }
 
-export function getTotalPriceForQuantity(price: Price, quantity: MixedQuantities): TotalPrice | undefined {
+export function getTotalPriceForQuantity(price: Price, mixedQuantities: MixedQuantities): TotalPrice | undefined {
   try {
+    const prices = mixedQuantities.quantities().map(quantity => {
+      const quantityWithConversion = new Quantity(quantity.q, price.quantity.conversions);
+      return quantityWithConversion.divide(price.quantity) * price.value;
+    });
+
     return {
-      value: Math.round(quantity.divide(price.quantity) * price.value * 100) / 100,
+      value: Math.round(prices.reduce((acc, item) => acc + item, 0) * 100) / 100,
       currency: price.currency,
     };
   } catch (err) {

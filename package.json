@@ -6,7 +6,9 @@
   "author": "Rodolphe Belouin <rodolphe.belouin@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "rollup -c",
+    "scripts:publish": "yarn build && clasp push"
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.23.9",
