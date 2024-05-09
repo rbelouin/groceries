@@ -1,6 +1,6 @@
 {
   "name": "groceries",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Google Apps Script / Spreadsheet helping you out with groceries!",
   "repository": "git@github.com:rbelouin/groceries.git",
   "author": "Rodolphe Belouin <rodolphe.belouin@gmail.com>",
