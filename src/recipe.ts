@@ -20,10 +20,36 @@ export function sortAndFormatRecipes() {
 
 export function sortRecipes(range: GoogleAppsScript.Spreadsheet.Range) {
   const recipes = readRecipes(range);
+  removeGroups(range, recipes);
 
   recipes.sort((a, b) => a.name > b.name ? 1 : -1);
 
   writeRecipes(range, recipes);
+  createGroups(range, recipes);
+}
+
+function removeGroups(range: GoogleAppsScript.Spreadsheet.Range, recipes: Recipe[]) {
+  range.breakApart();
+  const sheet = range.getSheet();
+  recipes.reduce((rowIndex, recipe) => {
+    try {
+      const group = sheet.getRowGroup(rowIndex, 1)!;
+      group.remove();
+    } catch (e) {
+    }
+
+    return rowIndex + recipe.ingredients.length + 1;
+  }, 3);
+}
+
+function createGroups(range: GoogleAppsScript.Spreadsheet.Range, recipes: Recipe[]) {
+  const sheet = range.getSheet();
+  recipes.reduce((rowIndex, recipe) => {
+    const recipeRange = sheet.getRange(rowIndex + 1, 1, recipe.ingredients.length);
+    recipeRange.shiftRowGroupDepth(1);
+    return rowIndex + recipe.ingredients.length + 1;
+  }, 3);
+  sheet.collapseAllRowGroups();
 }
 
 export function getAllRecipesByName(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet): Record<string, Recipe> {
@@ -90,6 +116,11 @@ export function resizeRecipe(recipe: Recipe, people: `${number}p`): Recipe {
 
 export function formatRecipes(range: GoogleAppsScript.Spreadsheet.Range) {
   const values = range.getValues();
-  const fontSizes = values.map(row => row.map(_ => row[0] ? 16 : 10));
+  const fontSizes = values.map(row => row.map(_ => row[0] ? 14 : 10));
   range.setFontSizes(fontSizes);
+
+  const recipeNotations = values.flatMap((row, rowIndex) => row[0] ? [`A${rowIndex + 3}:B${rowIndex + 3}`] : []);
+  const recipeRangeList = range.getSheet().getRangeList(recipeNotations);
+  recipeRangeList.getRanges().forEach(range => range.mergeAcross());
+  recipeRangeList.setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
 }
