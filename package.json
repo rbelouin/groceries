@@ -6,6 +6,7 @@
   "author": "Rodolphe Belouin <rodolphe.belouin@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "dev": "rollup -c --watch --watch.onEnd 'clasp push'",
     "test": "jest",
     "build": "rollup -c",
     "scripts:publish": "yarn build && clasp push"
