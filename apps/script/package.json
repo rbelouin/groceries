@@ -1,5 +1,5 @@
 {
-  "name": "groceries",
+  "name": "@groceries/script",
   "version": "0.12.0",
   "description": "Google Apps Script / Spreadsheet helping you out with groceries!",
   "repository": "git@github.com:rbelouin/groceries.git",
