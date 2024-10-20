@@ -9,6 +9,7 @@
     "dev": "rollup -c --watch --watch.onEnd 'clasp push'",
     "test": "jest",
     "build": "rollup -c",
+    "scripts:clone": "clasp clone",
     "scripts:publish": "yarn build && clasp push"
   },
   "devDependencies": {
