@@ -17,7 +17,7 @@ const preventTreeShakingPlugin = () => {
   }
 
 export default {
-  input: "./index.ts",
+  input: "./src/index.ts",
   output: {
     file: "./dist/groceries.js",
     format: "esm",
